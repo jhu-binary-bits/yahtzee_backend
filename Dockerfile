@@ -5,4 +5,4 @@ RUN pip install -r requirements.txt
 
 WORKDIR /yahtzee_backend/src/app
 COPY . .
-ENTRYPOINT python3 src/app/main.py
+ENTRYPOINT python3 -u src/app/main.py
