@@ -1,29 +1,22 @@
-import asyncio
-import json
-import websockets
-import yaml
+import logging
+from yahtzee.events.event_broker import EventBroker
 
 
-config = yaml.load(open("config.yaml"), Loader=yaml.Loader)
-PORT = config["port"]
+def logger_setup():
+    """
+    This class sets the formatting and the logging level of the logger for any file in the application
+    To use the logger in any file, import logging and then instantiate the logger like so:
+        log = logging.getLogger(__name__)
 
-
-async def echo(websocket, path):
-    async for message in websocket:
-        try:
-            message_dict = json.loads(message)
-            print("Message received:")
-            print(message_dict)
-        except json.decoder.JSONDecodeError as e:
-            print("Message received, but encountered exception when deserializing json.")
-            print(f"Message: {message}")
-            print(f"Exception: {e}")
-        await websocket.send(message)
+    Then to write a log to the stdout, use the logger like so:
+        log.info("My log message")
+    """
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S")
 
 
 if __name__ == "__main__":
-    # TODO: Use logger to get better timestamps and log levels
-    print("Starting the server")
-    start_server = websockets.serve(echo, '0.0.0.0', PORT)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
+    logger_setup()
+    broker = EventBroker()
+    broker.start_server()
