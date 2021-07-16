@@ -1,21 +1,24 @@
-import asyncio
-import websockets
-import yaml
+import logging
+from events.event_broker import EventBroker
+from util.config import Config
 
 
-config = yaml.load(open("config.yaml"), Loader=yaml.Loader)
-PORT = config["port"]
+def logger_setup(log_level):
+    """
+    This class sets the formatting and the logging level of the logger for any file in the application
+    To use the logger in any file, import logging and then instantiate the logger like so:
+        log = logging.getLogger(__name__)
 
-
-async def echo(websocket, path):
-    async for message in websocket:
-        await websocket.send(message)
+    Then to write a log to the stdout, use the logger like so:
+        log.info("My log message")
+    """
+    logging.basicConfig(level=log_level,
+                        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S")
 
 
 if __name__ == "__main__":
-
-    asyncio.get_event_loop().run_until_complete(
-        websockets.serve(echo, '0.0.0.0', PORT)
-    )
-
-    asyncio.get_event_loop().run_forever()
+    config = Config()
+    logger_setup(config.LOG_LEVEL)
+    broker = EventBroker()
+    broker.start_server()
