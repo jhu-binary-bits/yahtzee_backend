@@ -5,9 +5,10 @@ from datetime import datetime
 
 
 class Event:
-    def __init__(self, message: str):
+    def __init__(self, message: str, websocket):
         self.log = logging.getLogger(__name__)
         self.message = message
+        self.websocket = websocket
         self.event_dict = self.parse_message_to_dict()
 
         self.timestamp = self.get_timestamp()

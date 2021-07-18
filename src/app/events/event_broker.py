@@ -9,9 +9,10 @@ from util.config import Config
 
 
 STATE = {"value": 0}
-WEBSOCKETS = set()
+WEBSOCKETS = set()    # TODO: could use the websockets from the list of players in the state
 ENGINE_EVENTS = [     # TODO: could make this an enum
     "player_joined",
+    "player_left",
     "chat_message"
 ]
 
@@ -30,11 +31,7 @@ class EventBroker:
         """
         self.log.info("Sending a game state update to all players")
         if WEBSOCKETS:  # asyncio.wait doesn't accept an empty list
-            event = json.dumps({
-                "timestamp": datetime.now().timestamp(),
-                "type": "game_state_update",
-                "data": self.game_engine.get_state()
-            })
+            event = self.game_engine.get_game_state_event()
             await asyncio.wait([socket_client.send(event) for socket_client in WEBSOCKETS])
 
     async def register_websocket(self, websocket):
@@ -44,6 +41,12 @@ class EventBroker:
     async def unregister_websocket(self, websocket):
         self.log.info("Client disconnected, unregistering websocket")
         WEBSOCKETS.remove(websocket)
+        player_left_message = {
+            "timestamp": datetime.now().timestamp(),
+            "type": "player_left",
+            "data": {}   # We don't know the player name yet, figure that out in the state manager
+        }
+        return json.dumps(player_left_message)
 
     async def broker(self, websocket, path):
         self.log.info("Brokering messages")
@@ -54,7 +57,7 @@ class EventBroker:
             await self.send_game_state_update()
             async for message in websocket:
                 self.log.info(f"Message received from client: {message}")
-                event = Event(message)
+                event = Event(message, websocket)
                 if event.is_valid:
                     self.log.info("This is a valid event")
                     if event.type in ENGINE_EVENTS:
@@ -64,7 +67,11 @@ class EventBroker:
                 else:
                     self.log.warning("This is NOT a valid event")
         finally:
-            await self.unregister_websocket(websocket)
+            # When we lose connection to a websocket, we need to pretend we received a real event from the front end
+            mock_message = await self.unregister_websocket(websocket)
+            event = Event(mock_message, websocket)
+            self.game_engine.process_event(event)
+            await self.send_game_state_update()
 
     def start_server(self):
         self.log.info("Starting the server")
