@@ -1,5 +1,6 @@
 import logging
 from events.event_broker import EventBroker
+from engine.game_engine import GameEngine
 from util.config import Config
 
 
@@ -20,5 +21,6 @@ def logger_setup(log_level):
 if __name__ == "__main__":
     config = Config()
     logger_setup(config.LOG_LEVEL)
-    broker = EventBroker()
+    game_engine = GameEngine()
+    broker = EventBroker(engine=game_engine)
     broker.start_server()
