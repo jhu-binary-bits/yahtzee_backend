@@ -8,9 +8,8 @@ from engine.game_engine import GameEngine
 from util.config import Config
 
 
-STATE = {"value": 0}
-WEBSOCKETS = set()    # TODO: could use the websockets from the list of players in the state
-ENGINE_EVENTS = [     # TODO: could make this an enum
+PLAYER_CONNECTIONS = set()    # TODO: Could make some kind of a connections class
+ENGINE_EVENTS = [             # TODO: could make this an enum
     "player_joined",
     "player_left",
     "chat_message"
@@ -25,22 +24,22 @@ class EventBroker:
 
     async def send_game_state_update(self):
         """
-        For now, this just sends the whole game state (which is just players and chat) every time.
-        If we want, we could adjust this to take a more tailored message from the engine and only
-        send messages with information about what has changed.
+        This sends the whole game state whenever it is called. This seems to work well since we can
+        pass the whole game state along to each component in React and always use the updated
+        version of each variable.
         """
         self.log.info("Sending a game state update to all players")
-        if WEBSOCKETS:  # asyncio.wait doesn't accept an empty list
+        if PLAYER_CONNECTIONS:  # asyncio.wait doesn't accept an empty list
             event = self.game_engine.get_game_state_event()
-            await asyncio.wait([socket_client.send(event) for socket_client in WEBSOCKETS])
+            await asyncio.wait([socket_client.send(event) for socket_client in PLAYER_CONNECTIONS])
 
     async def register_websocket(self, websocket):
         self.log.info("Client joined, registering websocket")
-        WEBSOCKETS.add(websocket)
+        PLAYER_CONNECTIONS.add(websocket)
 
     async def unregister_websocket(self, websocket):
         self.log.info("Client disconnected, unregistering websocket")
-        WEBSOCKETS.remove(websocket)
+        PLAYER_CONNECTIONS.remove(websocket)
         player_left_message = {
             "timestamp": datetime.now().timestamp(),
             "type": "player_left",
@@ -50,7 +49,6 @@ class EventBroker:
 
     async def broker(self, websocket, path):
         self.log.info("Brokering messages")
-        # register(websocket) sends user_event() to websocket
         await self.register_websocket(websocket)
         try:
             # Send initial state to the player who just joined

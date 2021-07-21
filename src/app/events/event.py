@@ -1,7 +1,7 @@
 import json
 import logging
-
 from datetime import datetime
+from pytz import timezone
 
 
 class Event:
@@ -10,8 +10,8 @@ class Event:
         self.message = message
         self.websocket = websocket
         self.event_dict = self.parse_message_to_dict()
-
         self.timestamp = self.get_timestamp()
+        self.timestamp_est = self.get_timestamp(tz=timezone("US/Eastern"))
         self.type = self.get_type()
         self.data = self.get_data()
 
@@ -26,10 +26,10 @@ class Event:
             self.log.error("Error when deserializing JSON, formatting is likely incorrect.")
             return {}
 
-    def get_timestamp(self):
+    def get_timestamp(self, tz=None):
         self.log.debug("Parsing timestamp from message")
         try:
-            return datetime.fromtimestamp(float(self.event_dict["timestamp"])/1000).strftime("%Y-%m-%d %H:%M:%S")
+            return datetime.fromtimestamp(float(self.event_dict["timestamp"])/1000, tz=tz).strftime("%Y-%m-%d %H:%M:%S")
         except KeyError as e:
             self.log.error(f"Error parsing message, there was no 'timestamp' included in the message: {self.message}")
             return None

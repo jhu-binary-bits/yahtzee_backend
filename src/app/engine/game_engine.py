@@ -1,6 +1,5 @@
 import logging
 
-from events.event import Event
 from state.state_manager import StateManager
 
 
@@ -22,12 +21,10 @@ class GameEngine:
 
     def player_joined(self, event):
         self.state_manager.add_player(event)
-        self.state_manager.transcribe_event(event)
         return self
 
     def player_left(self, event):
-        event = self.state_manager.remove_player(event)
-        self.state_manager.transcribe_event(event)
+        self.state_manager.remove_player(event)
         return self
 
     def chat_received(self, event):
