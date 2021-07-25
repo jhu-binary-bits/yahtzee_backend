@@ -16,6 +16,8 @@ class GameEngine:
             self.player_left(event)
         elif event.type == "chat_message":
             self.chat_received(event)
+        elif event.type == "rolled_dice":
+            self.rolled_dice(event)
         else:
             self.log.warning(f"Event type: {event.type} not recognized.")
 
@@ -29,6 +31,10 @@ class GameEngine:
 
     def chat_received(self, event):
         self.state_manager.send_chat_message(event)
+        return self
+
+    def rolled_dice(self, event):
+        self.state_manager.roll_dice(event)
         return self
 
     # Right now these functions are pretty simple, but we can put more complicated

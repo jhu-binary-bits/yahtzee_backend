@@ -12,7 +12,8 @@ PLAYER_CONNECTIONS = set()    # TODO: Could make some kind of a connections clas
 ENGINE_EVENTS = [             # TODO: could make this an enum
     "player_joined",
     "player_left",
-    "chat_message"
+    "chat_message",
+    "rolled_dice"
 ]
 
 

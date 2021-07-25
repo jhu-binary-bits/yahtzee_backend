@@ -5,6 +5,7 @@ from events.event import Event
 from state.transcripts.message import Message
 from state.transcripts.transcript import Transcript
 from state.yahtzee.player import Player
+import random
 
 
 class StateManager:
@@ -13,6 +14,7 @@ class StateManager:
         self.players = list()
         self.chat_transcript = Transcript()
         self.game_transcript = Transcript()
+        self.dice_vals = [1, 1, 1, 1, 1]
 
     def add_player(self, event: Event):
         self.log.info("Adding player to the game")
@@ -42,6 +44,24 @@ class StateManager:
         self.chat_transcript.add_message(message)
         return self
 
+    def roll_dice(self, event: Event):
+        data = event.get_data()["dice_selected"]
+        nums = []
+        for c in range(len(data)):
+            nums.append(int(data[c][4]))
+        ret = []
+        for c in range(5):
+            if c in nums:
+                ret.append(random.randrange(5)+1)
+            else:
+                ret.append(self.dice_vals[c])
+
+        self.dice_vals = ret
+        message = Message(event)
+        message.dice_message(self.dice_vals)
+        self.game_transcript.add_message(message)
+        return self
+
     def transcribe_event(self, event):
         message = Message(event)
         self.game_transcript.add_message(message)
@@ -51,7 +71,8 @@ class StateManager:
         data = {
             "players": self.get_current_players(),
             "chat_transcript": self.chat_transcript.get_transcript(),
-            "game_transcript": self.game_transcript.get_transcript()
+            "game_transcript": self.game_transcript.get_transcript(),
+            "dice_vals": self.dice_vals
         }
         game_state_event = {
             "timestamp": datetime.now().timestamp(),
