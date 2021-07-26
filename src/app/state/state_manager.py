@@ -52,7 +52,7 @@ class StateManager:
         ret = []
         for c in range(5):
             if c in nums:
-                ret.append(random.randrange(5)+1)
+                ret.append(random.randint(1,6))
             else:
                 ret.append(self.dice_vals[c])
 
