@@ -4,7 +4,7 @@ import logging
 import websockets
 from datetime import datetime
 from events.event import Event
-from engine.game_engine import GameEngine
+from state.state_manager import StateManager
 from util.config import Config
 
 
@@ -17,10 +17,10 @@ ENGINE_EVENTS = [             # TODO: could make this an enum
 
 
 class EventBroker:
-    def __init__(self, engine: GameEngine):
+    def __init__(self):
         self.log = logging.getLogger(__name__)
         self.config = Config()
-        self.game_engine = engine
+        self.state_manager = StateManager()
 
     async def send_game_state_update(self):
         """
@@ -30,7 +30,7 @@ class EventBroker:
         """
         self.log.info("Sending a game state update to all players")
         if PLAYER_CONNECTIONS:  # asyncio.wait doesn't accept an empty list
-            event = self.game_engine.get_game_state_event()
+            event = self.state_manager.get_current_state()
             await asyncio.wait([socket_client.send(event) for socket_client in PLAYER_CONNECTIONS])
 
     async def register_websocket(self, websocket):
@@ -59,8 +59,9 @@ class EventBroker:
                 if event.is_valid:
                     self.log.info("This is a valid event")
                     if event.type in ENGINE_EVENTS:
-                        # Process the events in the game engine, which will update parts of the state
-                        self.game_engine.process_event(event)
+                        # Process the events in the state manager
+                        self.state_manager.process_event(event)
+                        # self.game_engine.process_event(event)
                         await self.send_game_state_update()
                 else:
                     self.log.warning("This is NOT a valid event")
@@ -68,7 +69,8 @@ class EventBroker:
             # When we lose connection to a websocket, we need to pretend we received a real event from the front end
             mock_message = await self.unregister_websocket(websocket)
             event = Event(mock_message, websocket)
-            self.game_engine.process_event(event)
+            self.state_manager.process_event(event)
+            # self.game_engine.process_event(event)
             await self.send_game_state_update()
 
     def start_server(self):

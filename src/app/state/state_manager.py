@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime
+from engine.game_engine import GameEngine
 from events.event import Event
 from state.transcripts.message import Message
 from state.transcripts.transcript import Transcript
@@ -11,14 +12,25 @@ class StateManager:
     def __init__(self):
         self.log = logging.getLogger(__name__)
         self.players = list()
+        self.game_engine = GameEngine()
         self.chat_transcript = Transcript()
         self.game_transcript = Transcript()
+
+    def process_event(self, event):
+        if event.type == "player_joined":
+            self.add_player(event)
+        elif event.type == "player_left":
+            self.remove_player(event)
+        elif event.type == "chat_message":
+            self.send_chat_message(event)
+        else:
+            self.log.warning(f"Event type: {event.type} not recognized.")
 
     def add_player(self, event: Event):
         self.log.info("Adding player to the game")
         new_player = Player(name=event.data["player_name"], websocket=event.websocket, joined_at=event.timestamp)
         self.players.append(new_player)
-        self.transcribe_event(event)
+        self._transcribe_event(event)
         self.log.info("current player list: ")
         self.log.info(self.get_current_players())
         return self
@@ -29,7 +41,7 @@ class StateManager:
             if player.websocket == event.websocket:
                 event.data["player_name"] = player.name
                 self.players.remove(player)
-        self.transcribe_event(event)
+        self._transcribe_event(event)
         self.log.info("current player list: ")
         self.log.info(self.get_current_players())
         return self
@@ -42,7 +54,7 @@ class StateManager:
         self.chat_transcript.add_message(message)
         return self
 
-    def transcribe_event(self, event):
+    def _transcribe_event(self, event):
         message = Message(event)
         self.game_transcript.add_message(message)
         return self
