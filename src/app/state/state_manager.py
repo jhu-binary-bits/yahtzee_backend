@@ -10,6 +10,9 @@ from state.yahtzee.player import Player
 
 class StateManager:
     def __init__(self):
+        """
+        Instantiates the classes required classes to manage a game
+        """
         self.log = logging.getLogger(__name__)
         self.players = list()
         self.game_engine = GameEngine()
@@ -17,6 +20,10 @@ class StateManager:
         self.game_transcript = Transcript()
 
     def process_event(self, event):
+        """
+        The central method of this class which processes all valid events received by the EventBroker.
+        Forwards events to the correct method for processing
+        """
         if event.type == "player_joined":
             self.add_player(event)
         elif event.type == "player_left":
@@ -30,7 +37,7 @@ class StateManager:
         self.log.info("Adding player to the game")
         new_player = Player(name=event.data["player_name"], websocket=event.websocket, joined_at=event.timestamp)
         self.players.append(new_player)
-        self._transcribe_event(event)
+        self.transcribe_event(event)
         self.log.info("current player list: ")
         self.log.info(self.get_current_players())
         return self
@@ -41,7 +48,7 @@ class StateManager:
             if player.websocket == event.websocket:
                 event.data["player_name"] = player.name
                 self.players.remove(player)
-        self._transcribe_event(event)
+        self.transcribe_event(event)
         self.log.info("current player list: ")
         self.log.info(self.get_current_players())
         return self
@@ -54,7 +61,7 @@ class StateManager:
         self.chat_transcript.add_message(message)
         return self
 
-    def _transcribe_event(self, event):
+    def transcribe_event(self, event):
         message = Message(event)
         self.game_transcript.add_message(message)
         return self
