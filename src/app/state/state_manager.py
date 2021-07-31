@@ -25,24 +25,24 @@ class StateManager:
         Forwards events to the correct method for processing
         """
         if event.type == "player_joined":
-            self.add_player(event)
+            self.add_connected_player(event)
         elif event.type == "player_left":
-            self.remove_player(event)
+            self.remove_connected_player(event)
         elif event.type == "chat_message":
             self.send_chat_message(event)
         else:
             self.log.warning(f"Event type: {event.type} not recognized.")
 
-    def add_player(self, event: Event):
+    def add_connected_player(self, event: Event):
         self.log.info("Adding player to the game")
         new_player = Player(name=event.data["player_name"], websocket=event.websocket, joined_at=event.timestamp)
         self.players.append(new_player)
         self.transcribe_event(event)
         self.log.info("current player list: ")
-        self.log.info(self.get_current_players())
+        self.log.info(self.get_connected_players())
         return self
 
-    def remove_player(self, event: Event):
+    def remove_connected_player(self, event: Event):
         self.log.info("Removing player to the game")
         for player in self.players:
             if player.websocket == event.websocket:
@@ -50,10 +50,10 @@ class StateManager:
                 self.players.remove(player)
         self.transcribe_event(event)
         self.log.info("current player list: ")
-        self.log.info(self.get_current_players())
+        self.log.info(self.get_connected_players())
         return self
 
-    def get_current_players(self):
+    def get_connected_players(self):
         return [str(player) for player in self.players]
 
     def send_chat_message(self, event: Event):
@@ -66,9 +66,9 @@ class StateManager:
         self.game_transcript.add_message(message)
         return self
 
-    def get_current_state(self):
+    def publish_current_state(self):
         data = {
-            "players": self.get_current_players(),
+            "players": self.get_connected_players(),
             "chat_transcript": self.chat_transcript.get_transcript(),
             "game_transcript": self.game_transcript.get_transcript()
         }

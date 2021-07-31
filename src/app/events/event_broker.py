@@ -25,7 +25,7 @@ class EventBroker:
         """
         self.log.info("Sending a game state update to all players")
         if PLAYER_CONNECTIONS:  # asyncio.wait doesn't accept an empty list
-            event = self.state_manager.get_current_state()
+            event = self.state_manager.publish_current_state()
             await asyncio.wait([socket_client.send(event) for socket_client in PLAYER_CONNECTIONS])
         return self
 
