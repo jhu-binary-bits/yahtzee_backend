@@ -46,7 +46,7 @@ class EventBroker:
         self.log.info("Client disconnected, unregistering websocket")
         PLAYER_CONNECTIONS.remove(websocket)
         player_left_message = {
-            "timestamp": datetime.now().timestamp(),
+            "timestamp": datetime.utcnow().timestamp() * 1000,
             "type": "player_left",
             "data": {}   # We don't know the player name yet, figure that out in the state manager
         }

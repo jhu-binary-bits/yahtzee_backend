@@ -4,10 +4,11 @@ from datetime import datetime
 from pytz import timezone
 
 
-ENGINE_EVENTS = [# TODO: could make this an enum
+VALID_EVENTS = [  # TODO: could make this an enum
+    "chat_message",
     "player_joined",
     "player_left",
-    "chat_message"
+    "start_game"
 ]
 
 
@@ -66,6 +67,6 @@ class Event:
                 and self.timestamp \
                 and self.type \
                 and self.data\
-                and self.type in ENGINE_EVENTS:
+                and self.type in VALID_EVENTS:
             return True
         return False
