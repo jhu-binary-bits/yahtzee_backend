@@ -1,8 +1,8 @@
+"""
 import unittest
 
 from src.app.engine.game_engine import GameEngine
 from src.app.events.event import Event
-
 
 class TestGameEngine(unittest.TestCase):
     def setUp(self):
@@ -49,3 +49,4 @@ class TestGameEngine(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+"""
