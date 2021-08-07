@@ -6,9 +6,9 @@ from pytz import timezone
 
 VALID_EVENTS = [  # TODO: could make this an enum
     "chat_message",
+    "game_started",
     "player_joined",
-    "player_left",
-    "start_game"
+    "player_left"
 ]
 
 

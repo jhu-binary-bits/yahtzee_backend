@@ -30,8 +30,8 @@ class StateManager:
             self.remove_connected_player(event)
         elif event.type == "chat_message":
             self.send_chat_message(event)
-        elif event.type == "start_game":
-            self.start_game()
+        elif event.type == "game_started":
+            self.start_game(event)
         else:
             self.log.warning(f"Event type: {event.type} not recognized.")
 
@@ -63,8 +63,9 @@ class StateManager:
         self.chat_transcript.add_message(message)
         return self
 
-    def start_game(self):
+    def start_game(self, event: Event):
         self.game_engine.start_game()
+        self.transcribe_event(event)
         return self
 
     def transcribe_event(self, event):
