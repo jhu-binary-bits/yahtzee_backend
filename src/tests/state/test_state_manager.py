@@ -1,3 +1,4 @@
+"""
 import unittest
 
 from events.event import Event
@@ -59,3 +60,4 @@ class TestStateManager(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+"""

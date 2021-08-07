@@ -1,3 +1,4 @@
+"""
 import unittest
 from src.app.events.event import Event
 
@@ -45,3 +46,4 @@ class TestEvent(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+"""

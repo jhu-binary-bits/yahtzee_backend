@@ -1,3 +1,4 @@
+"""
 import unittest
 
 from src.app.engine.game_engine import GameEngine
@@ -27,3 +28,4 @@ class TestEventBroker(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+"""
