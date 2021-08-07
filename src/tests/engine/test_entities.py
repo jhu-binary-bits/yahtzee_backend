@@ -119,6 +119,14 @@ class TestEntities(TestCase):
 
         self.assertEqual(is_valid_for_roll, True)
 
+    def test_small_straight_score_is_valid_for_roll_with_four_sequential_dice_not_ordered(self):
+        roll = Roll([FourFaceValueDie(1), TwoFaceValueDie(2), FiveFaceValueDie(3), ThreeFaceValueDie(4), ThreeFaceValueDie(5)])
+
+        small_straight_score = SmallStraightScore()
+        is_valid_for_roll = small_straight_score.is_valid_for_roll(roll)
+
+        self.assertEqual(is_valid_for_roll, True)
+
     def test_small_straight_score_is_valid_for_roll_without_four_sequential_dice(self):
         roll = Roll([TwoFaceValueDie(1), FourFaceValueDie(2), FiveFaceValueDie(3), TwoFaceValueDie(4), SixFaceValueDie(5)])
 
