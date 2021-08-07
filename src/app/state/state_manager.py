@@ -89,8 +89,8 @@ class StateManager:
             "players": self.get_connected_players(),
             "chat_transcript": self.chat_transcript.get_transcript(),
             "game_transcript": self.game_transcript.get_transcript(),
-            #"scorecards": json.dumps(self.game_engine.scorecards),
-            #"current_turn": json.dumps(self.game_engine.current_turn)
+            "scorecards": [scorecard.to_json() for scorecard in self.game_engine.scorecards],
+            "current_turn": self.game_engine.current_turn.to_json()
         }
         game_state_event = {
             "timestamp": datetime.now().timestamp(),
