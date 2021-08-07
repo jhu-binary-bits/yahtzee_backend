@@ -2,7 +2,7 @@ import logging
 from itertools import cycle
 from typing import List
 
-from src.app.engine.entities import Scorecard, Turn
+from src.app.engine.entities import Scorecard, Turn, ScoreType
 from src.app.state.yahtzee.player import Player
 
 
@@ -29,9 +29,8 @@ class GameEngine:
         self.current_turn.roll_selected_dice(dice_to_roll)
 
     def select_score_for_roll(self, score_type_selected):
-        #TODO: The "score_type_selected" argument needs to be converted to a ScoreType enumeration value
-        #      prior to invoking the self.current_turn.roll_selected_dice function.
-        self.current_scorecard.select_score_for_roll(score_type_selected)
+        # each score_type_selected from the front should match the name of the score in the enum
+        self.current_scorecard.select_score_for_roll(ScoreType(score_type_selected.upper()))
 
         # Now that the current player has selected a score for their turn, update the current turn.
         self._update_current_turn()

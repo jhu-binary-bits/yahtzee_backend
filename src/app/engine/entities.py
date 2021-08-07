@@ -49,9 +49,15 @@ class Die():
     def _get_random_face_value() -> int:
         return randint(1, 6)
 
+    def to_json(self):
+        return {
+            "die_id": self.die_id,
+            "face_value": self.face_value
+        }
+
 @dataclass(frozen=True, init=True)
 class Roll():
-    dice: List[Die] = field(default_factory=lambda: Roll._get_default_dice)
+    dice: List[Die] = field(default_factory=lambda: Roll._get_default_dice())
 
     @staticmethod
     def _get_default_dice() -> List[Die]:
@@ -60,24 +66,27 @@ class Roll():
     def roll_selected_dice(self, dice_to_roll: List[Die]):
         return [die.roll() if die in dice_to_roll else die for die in self.dice]
 
+    def to_json(self):
+        return [die.to_json() for die in self.dice]
+
 class ScoreType(Enum):
-    ONES = 1
-    TWOS = 2
-    THREES = 3
-    FOURS = 4
-    FIVES = 5
-    SIXES = 6
-    THREE_OF_A_KIND = 7
-    FOUR_OF_A_KIND = 8
-    FULL_HOUSE = 9
-    SMALL_STRAIGHT = 10
-    LARGE_STRAIGHT = 11
-    YAHTZEE = 12
-    CHANCE = 13
+    ONES = "ONES"
+    TWOS = "TWOS"
+    THREES = "THREES"
+    FOURS = "FOURS"
+    FIVES = "FIVES"
+    SIXES = "SIXES"
+    THREE_OF_A_KIND = "THREE_OF_A_KIND"
+    FOUR_OF_A_KIND = "FOUR_OF_A_KIND"
+    FULL_HOUSE = "FULL_HOUSE"
+    SMALL_STRAIGHT = "SMALL_STRAIGHT"
+    LARGE_STRAIGHT = "LARGE_STRAIGHT"
+    YAHTZEE = "YAHTZEE"
+    CHANCE = "CHANCE"
 
 class SectionType(Enum):
-    UPPER = 1
-    LOWER = 2
+    UPPER = "UPPER"
+    LOWER = "LOWER"
 
 @dataclass
 class Score(ABC):
@@ -118,6 +127,12 @@ class Score(ABC):
     def selected_roll(self, roll: Roll):
         if self._selected_roll is None and roll is not None:
             self._selected_roll = roll
+
+    def to_json(self):
+        return {
+            "score_type": self.score_type().value,
+            "points": self.calculate_points()
+        }
 
 @dataclass
 class UpperSectionScore(Score, ABC):
@@ -346,21 +361,27 @@ class Scorecard():
 
         return self.player.websocket == other.player.websocket
 
+    def to_json(self):
+        return {
+            "player": self.player.to_json(),
+            "scores": [score.to_json() for score in self.scores]
+        }
+
     @staticmethod
     def _get_initial_scorecard() -> List[Score]:
-        return [OnesScore, \
-                TwosScore, \
-                ThreesScore, \
-                FoursScore, \
-                FivesScore, \
-                SixesScore, \
-                ThreeOfAKindScore, \
-                FourOfAKindScore, \
-                FullHouseScore, \
-                SmallStraightScore, \
-                LargeStraightScore, \
-                YahtzeeScore, \
-                ChanceScore]
+        return [OnesScore(),
+                TwosScore(),
+                ThreesScore(),
+                FoursScore(),
+                FivesScore(),
+                SixesScore(),
+                ThreeOfAKindScore(),
+                FourOfAKindScore(),
+                FullHouseScore(),
+                SmallStraightScore(),
+                LargeStraightScore(),
+                YahtzeeScore(),
+                ChanceScore()]
 
 @dataclass(init=True)
 class Turn:
@@ -379,3 +400,10 @@ class Turn:
 
     def is_turn_complete(self) -> bool:
         return self.selected_score_type is not None
+
+    def to_json(self):
+        return {
+            "last_roll": self.last_roll.to_json(),
+            "roll_count": self.roll_count,
+            "selected_score_type": self.selected_score_type.value if self.selected_score_type else None
+        }
