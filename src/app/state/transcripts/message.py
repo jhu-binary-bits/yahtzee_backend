@@ -27,6 +27,8 @@ class Message:
             message += " joined the game."
         elif self.event_type == "player_left":
             message += " left the game."
+        elif self.event_type == "game_started":
+            message += " started the game."
         elif self.event_type == "rolled_dice":
             pass
         # TODO: Add in other types of game transcript messages

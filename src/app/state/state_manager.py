@@ -30,6 +30,8 @@ class StateManager:
             self.remove_connected_player(event)
         elif event.type == "chat_message":
             self.send_chat_message(event)
+        elif event.type == "game_started":
+            self.start_game(event)
         else:
             self.log.warning(f"Event type: {event.type} not recognized.")
 
@@ -61,6 +63,11 @@ class StateManager:
         self.chat_transcript.add_message(message)
         return self
 
+    def start_game(self, event: Event):
+        self.game_engine.start_game()
+        self.transcribe_event(event)
+        return self
+
     def transcribe_event(self, event):
         message = Message(event)
         self.game_transcript.add_message(message)
@@ -68,6 +75,7 @@ class StateManager:
 
     def publish_current_state(self):
         data = {
+            "game_started": self.game_engine.game_started,
             "players": self.get_connected_players(),
             "chat_transcript": self.chat_transcript.get_transcript(),
             "game_transcript": self.game_transcript.get_transcript()
@@ -77,4 +85,6 @@ class StateManager:
             "type": "game_state_update",
             "data": data
         }
+        self.log.info("Publishing game state update:")
+        self.log.info(game_state_event)
         return json.dumps(game_state_event)
