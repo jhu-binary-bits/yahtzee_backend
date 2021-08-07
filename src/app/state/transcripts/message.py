@@ -29,8 +29,10 @@ class Message:
             message += " left the game."
         elif self.event_type == "game_started":
             message += " started the game."
-        elif self.event_type == "rolled_dice":
-            pass
+        elif self.event_type == "roll_selected_dice":
+            message += " rolled selected dice."
+        elif self.event_type == "score_selected":
+            message += " selected a score."
         # TODO: Add in other types of game transcript messages
         else:
             self.log.warning("Game event type not recognized, could not produce an entry for the transcript.")
