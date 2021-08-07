@@ -78,7 +78,8 @@ class StateManager:
             "game_started": self.game_engine.game_started,
             "players": self.get_connected_players(),
             "chat_transcript": self.chat_transcript.get_transcript(),
-            "game_transcript": self.game_transcript.get_transcript()
+            "game_transcript": self.game_transcript.get_transcript(),
+            "scorecards": self.game_engine.scorecards
         }
         game_state_event = {
             "timestamp": datetime.now().timestamp(),
