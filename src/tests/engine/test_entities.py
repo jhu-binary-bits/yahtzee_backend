@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from unittest import main, TestCase
 
-from src.app.engine.entities import Die, FullHouseScore, OnesScore, Roll, SmallStraightScore, ThreeOfAKindScore
+from src.app.state.yahtzee.player import Player
+from src.app.engine.entities import Die, FullHouseScore, OnesScore, Roll, SmallStraightScore, ThreeOfAKindScore, Scorecard
 
 @dataclass
 class OneFaceValueDie(Die):
