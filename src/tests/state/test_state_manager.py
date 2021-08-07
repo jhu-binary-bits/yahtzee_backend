@@ -1,3 +1,27 @@
+import unittest
+
+from src.app.events.event import Event
+from src.app.state.state_manager import StateManager
+
+
+class TestStateManager(unittest.TestCase):
+    def setUp(self):
+        self.state_manager = StateManager()
+        player_joined_1 = '{"timestamp":1626828897580,"type":"player_joined","data":{"player_name":"Player 1"}}'
+        player_joined_2 = '{"timestamp":1626829899580,"type":"player_joined","data":{"player_name":"Player 2"}}'
+        test_event_player_joined_1 = Event(message=player_joined_1, websocket="foo")
+        test_event_player_joined_2 = Event(message=player_joined_2, websocket="bar")
+        self.state_manager.add_connected_player(test_event_player_joined_1)
+        self.state_manager.add_connected_player(test_event_player_joined_2)
+
+    def test_start_game_and_get_current_state(self):
+        start_game_message = '{"timestamp":1626828897580,"type":"game_started","data":{"player_name":"Player 2"}}'
+        start_game_event = Event(message=start_game_message, websocket="foo")
+        self.state_manager.start_game(start_game_event)
+
+        current_state = self.state_manager.publish_current_state()
+        self.assertIsNotNone(current_state)
+
 """
 import unittest
 

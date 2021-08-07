@@ -32,6 +32,10 @@ class StateManager:
             self.send_chat_message(event)
         elif event.type == "game_started":
             self.start_game(event)
+        elif event.type == "roll_selected_dice":
+            self.roll_selected_dice(event)
+        elif event.type == "score_selected":
+            self.score_selected(event)
         else:
             self.log.warning(f"Event type: {event.type} not recognized.")
 
@@ -64,9 +68,15 @@ class StateManager:
         return self
 
     def start_game(self, event: Event):
-        self.game_engine.start_game()
+        self.game_engine.start_game(self.players)
         self.transcribe_event(event)
         return self
+
+    def roll_selected_dice(self, event: Event):
+        self.game_engine.roll_selected_dice(event.get_data()["dice_to_roll"])
+
+    def score_selected(self, event: Event):
+        self.game_engine.score_selected(event.get_data()["selected_score_type"])
 
     def transcribe_event(self, event):
         message = Message(event)
@@ -79,7 +89,8 @@ class StateManager:
             "players": self.get_connected_players(),
             "chat_transcript": self.chat_transcript.get_transcript(),
             "game_transcript": self.game_transcript.get_transcript(),
-            "scorecards": self.game_engine.scorecards
+            #"scorecards": json.dumps(self.game_engine.scorecards),
+            #"current_turn": json.dumps(self.game_engine.current_turn)
         }
         game_state_event = {
             "timestamp": datetime.now().timestamp(),

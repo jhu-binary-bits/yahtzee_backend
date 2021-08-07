@@ -5,10 +5,10 @@ from itertools import groupby
 from random import randint
 from typing import List
 
-from src.app.state.state_manager import Player
+from src.app.state.yahtzee.player import Player
 
 @dataclass(init=False)
-class Die:
+class Die():
     def __init__(self, die_id: int, face_value: int = None):
         self.die_id = die_id
         
@@ -50,7 +50,7 @@ class Die:
         return randint(1, 6)
 
 @dataclass(frozen=True, init=True)
-class Roll:
+class Roll():
     dice: List[Die] = field(default_factory=lambda: Roll._get_default_dice)
 
     @staticmethod
@@ -316,7 +316,7 @@ class YahtzeeScore(GroupedScore):
         return 50
 
 @dataclass(init=True)
-class Scorecard:
+class Scorecard():
     player: Player
     scores: List[Score] = field(default_factory=lambda: Scorecard._get_initial_scorecard())
 
@@ -340,6 +340,12 @@ class Scorecard:
     def _get_section_total(self, section_type: SectionType):
          return sum(filter(None, [score.calculate_points() for score in self.scores if score.section_type == section_type]))
 
+    def __eq__(self, other):
+        if not isinstance(other, Scorecard):
+            raise NotImplementedError
+
+        return self.player.websocket == other.player.websocket
+
     @staticmethod
     def _get_initial_scorecard() -> List[Score]:
         return [OnesScore, \
@@ -355,3 +361,21 @@ class Scorecard:
                 LargeStraightScore, \
                 YahtzeeScore, \
                 ChanceScore]
+
+@dataclass(init=True)
+class Turn:
+    MAX_ROLL_COUNT = 3
+
+    last_roll: Roll = Roll()
+    roll_count: int = 1
+    selected_score_type: ScoreType = None
+
+    def roll_selected_dice(self, dice_to_roll: List[Die]):
+        if self.roll_count == Turn.MAX_ROLL_COUNT:
+            raise Exception(f"Dice have already been rolled {Turn.MAX_ROLL_COUNT} times this turn.")
+
+        self.last_roll.roll_selected_dice(dice_to_roll)
+        self.roll_count += 1
+
+    def is_turn_complete(self) -> bool:
+        return self.selected_score_type is not None
