@@ -86,9 +86,18 @@ class TestEntities(TestCase):
 
         self.assertEqual(points, 23)
 
+    def test_three_of_a_kind_score_calculate_points_for_roll_with_three_dice_with_same_face_value(self):
+        roll = Roll([FiveFaceValueDie(1), FiveFaceValueDie(2), FiveFaceValueDie(3), FiveFaceValueDie(4), SixFaceValueDie(5)])
+
+        three_of_kind_score = ThreeOfAKindScore()
+        three_of_kind_score.selected_roll = roll
+        points = three_of_kind_score.calculate_points()
+
+        self.assertEqual(points, 26)
+
     def test_full_house_score_is_valid_for_roll_with_three_ones_and_two_twos(self):
         roll = Roll([OneFaceValueDie(1), OneFaceValueDie(2), OneFaceValueDie(3), TwoFaceValueDie(4), TwoFaceValueDie(5)])
-        
+
         full_house_score = FullHouseScore()
         is_valid_for_roll = full_house_score.is_valid_for_roll(roll)
 

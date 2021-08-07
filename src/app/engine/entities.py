@@ -202,7 +202,7 @@ class ThreeOfAKindScore(GroupedScore):
     def is_valid_for_roll(self, roll: Roll) -> bool:
         length_of_groups_of_dice = self._get_length_of_groups_of_dice(roll)
 
-        return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 3]) == 1
+        return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice >= 3]) == 1
 
     def _calculate_points_internal(self) -> int:
         return sum([die.face_value for die in self._selected_roll.dice])
