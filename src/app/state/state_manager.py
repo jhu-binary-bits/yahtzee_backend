@@ -100,13 +100,20 @@ class StateManager:
                 "data": data
             }
         else:
+            current_turn_valid_scores = self.game_engine.current_scorecard.get_valid_scores_for_roll(
+                roll=self.game_engine.current_turn.last_roll
+            )
+
             data = {
                 "game_started": self.game_engine.game_started,
                 "players": self.get_connected_players(),
                 "chat_transcript": self.chat_transcript.get_transcript(),
                 "game_transcript": self.game_transcript.get_transcript(),
                 "scorecards": [scorecard.to_json() for scorecard in self.game_engine.scorecards],
-                "current_turn": self.game_engine.current_turn.to_json()
+                "current_turn": {
+                    **self.game_engine.current_turn.to_json(),
+                    "valid_scores": [score.to_json() for score in current_turn_valid_scores]
+                }
             }
             game_state_event = {
                 "timestamp": datetime.now().timestamp(),
