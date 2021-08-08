@@ -38,11 +38,11 @@ class Die():
 
     def roll(self):
         rolled_face_value = Die._get_random_face_value()
-        self._face_value = rolled_face_value
+        self.face_value = rolled_face_value
         return Die(self.die_id, rolled_face_value)
 
     def __eq__(self, other):
-        if not isinstance(other, die):
+        if not isinstance(other, Die):
             raise NotImplementedError
 
         return self._die_id == other._die_id
@@ -396,7 +396,7 @@ class Turn:
     MAX_ROLL_COUNT = 3
 
     last_roll: Roll = Roll()
-    roll_count: int = 0
+    roll_count: int = 1
     selected_score_type: ScoreType = None
 
     def roll_selected_dice(self, dice_to_roll: List[Die]):
