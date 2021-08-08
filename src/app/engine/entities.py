@@ -4,14 +4,15 @@ from enum import Enum
 from itertools import groupby
 from random import randint
 from typing import List
-
+import logging
 from src.app.state.yahtzee.player import Player
 
 @dataclass(init=False)
 class Die():
     def __init__(self, die_id: int, face_value: int = None):
         self.die_id = die_id
-        
+        self.log = logging.getLogger(__name__)
+
         if face_value == None:
             face_value = Die._get_random_face_value()
 
@@ -34,9 +35,10 @@ class Die():
     def face_value(self, value: int):
         if 1 <= value <= 6:
             self._face_value = value
-    
+
     def roll(self):
         rolled_face_value = Die._get_random_face_value()
+        self.face_value = rolled_face_value
         return Die(self.die_id, rolled_face_value)
 
     def __eq__(self, other):
@@ -63,8 +65,14 @@ class Roll():
     def _get_default_dice() -> List[Die]:
         return [Die(1), Die(2), Die(3), Die(4), Die(5)]
 
-    def roll_selected_dice(self, dice_to_roll: List[Die]):
-        return [die.roll() if die in dice_to_roll else die for die in self.dice]
+    def roll_selected_dice(self, dice_to_roll: List[int]):
+        return [die.roll() if die.die_id in dice_to_roll else die for die in self.dice]
+
+    def get_die_by_id(self, id: int):
+        for d in self.dice:
+            if(d.die_id == id):
+                return d
+        return None
 
     def to_json(self):
         return [die.to_json() for die in self.dice]
@@ -113,7 +121,7 @@ class Score(ABC):
     def calculate_points(self) -> int:
         if self._selected_roll is None:
             return None
-        
+
         if self.is_valid_for_roll(self._selected_roll):
             return self._calculate_points_internal()
         else:
@@ -137,7 +145,7 @@ class Score(ABC):
 @dataclass
 class UpperSectionScore(Score, ABC):
     def section_type(self) -> SectionType:
-        return SectionType.UPPER 
+        return SectionType.UPPER
 
     def is_valid_for_roll(self, roll: Roll) -> bool:
         return True
@@ -147,7 +155,7 @@ class UpperSectionScore(Score, ABC):
 
     @abstractmethod
     def _die_value(self) -> int:
-        pass 
+        pass
 
 @dataclass
 class OnesScore(UpperSectionScore):
@@ -202,14 +210,14 @@ class GroupedScore(Score, ABC):
     def _get_length_of_groups_of_dice(self, roll: Roll) -> List[int]:
         # Group dice by their face value
         grouped_dice = [list(iterator) for key, iterator in groupby(roll.dice, lambda die: die.face_value)]
-        
+
         # Get the length of each group of dice
         return [len(group_of_dice) for group_of_dice in grouped_dice]
 
 @dataclass
 class ThreeOfAKindScore(GroupedScore):
     def section_type(self) -> SectionType:
-        return SectionType.LOWER 
+        return SectionType.LOWER
 
     def score_type(self) -> ScoreType:
         return ScoreType.THREE_OF_A_KIND
@@ -225,7 +233,7 @@ class ThreeOfAKindScore(GroupedScore):
 @dataclass
 class FourOfAKindScore(GroupedScore):
     def section_type(self) -> SectionType:
-        return SectionType.LOWER 
+        return SectionType.LOWER
 
     def score_type(self) -> ScoreType:
         return ScoreType.FOUR_OF_A_KIND
@@ -242,7 +250,7 @@ class FourOfAKindScore(GroupedScore):
 @dataclass
 class FullHouseScore(GroupedScore):
     def section_type(self) -> SectionType:
-        return SectionType.LOWER 
+        return SectionType.LOWER
 
     def score_type(self) -> ScoreType:
         return ScoreType.FULL_HOUSE
@@ -260,7 +268,7 @@ class FullHouseScore(GroupedScore):
 @dataclass
 class SmallStraightScore(Score):
     def section_type(self) -> SectionType:
-        return SectionType.LOWER 
+        return SectionType.LOWER
 
     def score_type(self) -> ScoreType:
         return ScoreType.SMALL_STRAIGHT
@@ -282,7 +290,7 @@ class SmallStraightScore(Score):
 @dataclass
 class LargeStraightScore(Score):
     def section_type(self) -> SectionType:
-        return SectionType.LOWER 
+        return SectionType.LOWER
 
     def score_type(self) -> ScoreType:
         return ScoreType.LARGE_STRAIGHT
@@ -302,7 +310,7 @@ class LargeStraightScore(Score):
 @dataclass
 class ChanceScore(Score):
     def section_type(self) -> SectionType:
-        return SectionType.LOWER 
+        return SectionType.LOWER
 
     def score_type(self) -> ScoreType:
         return ScoreType.CHANCE
@@ -316,7 +324,7 @@ class ChanceScore(Score):
 @dataclass
 class YahtzeeScore(GroupedScore):
     def section_type(self) -> SectionType:
-        return SectionType.LOWER 
+        return SectionType.LOWER
 
     def score_type(self) -> ScoreType:
         return ScoreType.YAHTZEE
@@ -359,11 +367,11 @@ class Scorecard():
         if not isinstance(other, Scorecard):
             raise NotImplementedError
 
-        return self.player.websocket == other.player.websocket
+        return self.player == other.player
 
     def to_json(self):
         return {
-            "player": self.player.to_json(),
+            "player": self.player,
             "scores": [score.to_json() for score in self.scores]
         }
 

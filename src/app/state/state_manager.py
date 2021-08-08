@@ -32,7 +32,7 @@ class StateManager:
             self.send_chat_message(event)
         elif event.type == "game_started":
             self.start_game(event)
-        elif event.type == "roll_selected_dice":
+        elif event.type == "rolled_dice":
             self.roll_selected_dice(event)
         elif event.type == "score_selected":
             self.score_selected(event)
@@ -84,19 +84,35 @@ class StateManager:
         return self
 
     def publish_current_state(self):
-        data = {
-            "game_started": self.game_engine.game_started,
-            "players": self.get_connected_players(),
-            "chat_transcript": self.chat_transcript.get_transcript(),
-            "game_transcript": self.game_transcript.get_transcript(),
-            "scorecards": [scorecard.to_json() for scorecard in self.game_engine.scorecards],
-            "current_turn": self.game_engine.current_turn.to_json()
-        }
-        game_state_event = {
-            "timestamp": datetime.now().timestamp(),
-            "type": "game_state_update",
-            "data": data
-        }
+        if not self.game_engine.game_started:
+            data = {
+                "game_started": self.game_engine.game_started,
+                "players": self.get_connected_players(),
+                "chat_transcript": self.chat_transcript.get_transcript(),
+                "game_transcript": self.game_transcript.get_transcript(),
+                "scorecards": [],
+                "current_turn": ""
+            }
+            game_state_event = {
+                "timestamp": datetime.now().timestamp(),
+                "type": "game_state_update",
+                "data": data
+            }
+        else:
+            data = {
+                "game_started": self.game_engine.game_started,
+                "players": self.get_connected_players(),
+                "chat_transcript": self.chat_transcript.get_transcript(),
+                "game_transcript": self.game_transcript.get_transcript(),
+                "scorecards": [scorecard.to_json() for scorecard in self.game_engine.scorecards],
+                "current_turn": self.game_engine.current_turn.to_json()
+            }
+            game_state_event = {
+                "timestamp": datetime.now().timestamp(),
+                "type": "game_state_update",
+                "data": data
+            }
+
         self.log.info("Publishing game state update:")
         self.log.info(game_state_event)
         return json.dumps(game_state_event)

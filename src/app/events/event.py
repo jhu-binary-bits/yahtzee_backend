@@ -8,7 +8,8 @@ VALID_EVENTS = [  # TODO: could make this an enum
     "chat_message",
     "game_started",
     "player_joined",
-    "player_left"
+    "player_left",
+    "rolled_dice"
 ]
 
 
