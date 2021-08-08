@@ -8,6 +8,7 @@ from state.transcripts.transcript import Transcript
 from state.yahtzee.player import Player
 
 
+
 class StateManager:
     def __init__(self):
         """

@@ -208,8 +208,11 @@ class SixesScore(UpperSectionScore):
 @dataclass
 class GroupedScore(Score, ABC):
     def _get_length_of_groups_of_dice(self, roll: Roll) -> List[int]:
+        #sort dice by face value
+        dicelist = sorted(roll.dice, key=lambda die: die.face_value, reverse=True)
+
         # Group dice by their face value
-        grouped_dice = [list(iterator) for key, iterator in groupby(roll.dice, lambda die: die.face_value)]
+        grouped_dice = [list(iterator) for key, iterator in groupby(dicelist, lambda die: die.face_value)]
 
         # Get the length of each group of dice
         return [len(group_of_dice) for group_of_dice in grouped_dice]
