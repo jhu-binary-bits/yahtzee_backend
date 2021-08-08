@@ -396,7 +396,7 @@ class Turn:
     MAX_ROLL_COUNT = 3
 
     last_roll: Roll = Roll()
-    roll_count: int = 1
+    roll_count: int = 0
     selected_score_type: ScoreType = None
 
     def roll_selected_dice(self, dice_to_roll: List[Die]):
