@@ -74,6 +74,7 @@ class StateManager:
 
     def roll_selected_dice(self, event: Event):
         self.game_engine.roll_selected_dice(event.get_data()["dice_to_roll"])
+        self.transcribe_event(event)
 
     def score_selected(self, event: Event):
         self.game_engine.score_selected(event.get_data()["selected_score_type"])

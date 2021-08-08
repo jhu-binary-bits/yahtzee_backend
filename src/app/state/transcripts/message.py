@@ -29,7 +29,7 @@ class Message:
             message += " left the game."
         elif self.event_type == "game_started":
             message += " started the game."
-        elif self.event_type == "roll_selected_dice":
+        elif self.event_type == "rolled_dice":
             message += " rolled selected dice."
         elif self.event_type == "score_selected":
             message += " selected a score."
