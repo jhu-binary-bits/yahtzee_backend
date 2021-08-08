@@ -6,6 +6,9 @@ from events.event import Event
 from state.transcripts.message import Message
 from state.transcripts.transcript import Transcript
 from state.yahtzee.player import Player
+from engine.entities import ScoreType
+
+from itertools import groupby
 
 
 class StateManager:
@@ -85,6 +88,8 @@ class StateManager:
         return self
 
     def publish_current_state(self):
+
+
         if not self.game_engine.game_started:
             data = {
                 "game_started": self.game_engine.game_started,
