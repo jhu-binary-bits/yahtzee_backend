@@ -78,7 +78,8 @@ class StateManager:
         self.transcribe_event(event)
 
     def score_selected(self, event: Event):
-        self.game_engine.score_selected(event.get_data()["selected_score_type"])
+        self.game_engine.select_score_for_roll(event.get_data()["selected_score_type"])
+        self.transcribe_event(event)
 
     def transcribe_event(self, event):
         message = Message(event)
