@@ -47,6 +47,10 @@ class StateManager:
         self.transcribe_event(event)
         self.log.info("current player list: ")
         self.log.info(self.get_connected_players())
+
+        # Temporary hack to reset game each time a new player joins (makes debugging much easier).
+        self.game_engine = GameEngine()
+        
         return self
 
     def remove_connected_player(self, event: Event):

@@ -1,4 +1,6 @@
 .idea/
 .vscode/
+dist/**
+src/app/*.egg-info
 **/**/__pycache__
 *.DS_Store

@@ -5,7 +5,7 @@ from itertools import groupby
 from random import randint
 from typing import List
 import logging
-from src.app.state.yahtzee.player import Player
+from state.yahtzee.player import Player
 
 @dataclass(init=False)
 class Die():
@@ -359,7 +359,7 @@ class Scorecard():
         return self.get_upper_section_total() + self.get_lower_section_total()
 
     def select_score_for_roll(self, score_type: ScoreType, roll: Roll):
-        score_for_roll = [score for score in self.scores if score.score_type == score_type][0]
+        score_for_roll = [score for score in self.scores if score.score_type() is score_type][0]
 
         score_for_roll.selected_roll = roll
 
