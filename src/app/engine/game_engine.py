@@ -47,6 +47,7 @@ class GameEngine:
         if self._is_first_turn_of_game() or self.current_turn.is_turn_complete():
             self.current_scorecard = next(self.scorecards_cycle)
             self.current_turn = Turn()
+            self.current_turn.player = self.current_scorecard.player
 
     def _is_first_turn_of_game(self) -> bool:
         return self.current_turn is None

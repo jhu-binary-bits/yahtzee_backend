@@ -343,7 +343,7 @@ class YahtzeeScore(GroupedScore):
 
 @dataclass(init=True)
 class Scorecard():
-    player: Player
+    player: str
     scores: List[Score] = field(default_factory=lambda: Scorecard._get_initial_scorecard())
 
     def get_valid_scores_for_roll(self, roll: Roll) -> List[Score]:
@@ -401,6 +401,7 @@ class Turn:
     last_roll: Roll = Roll()
     roll_count: int = 1
     selected_score_type: ScoreType = None
+    player: str = ""
 
     def roll_selected_dice(self, dice_to_roll: List[Die]):
         if self.roll_count == Turn.MAX_ROLL_COUNT:
@@ -416,5 +417,6 @@ class Turn:
         return {
             "last_roll": self.last_roll.to_json(),
             "roll_count": self.roll_count,
-            "selected_score_type": self.selected_score_type.value if self.selected_score_type else None
+            "selected_score_type": self.selected_score_type.value if self.selected_score_type else None,
+            "player": self.player
         }
