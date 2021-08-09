@@ -32,7 +32,9 @@ class GameEngine:
 
     def select_score_for_roll(self, score_type_selected):
         # each score_type_selected from the front should match the name of the score in the enum
-        self.current_scorecard.select_score_for_roll(ScoreType(score_type_selected.upper()), self.current_turn.last_roll)
+        score_type_selected = ScoreType(score_type_selected.upper())
+        self.current_scorecard.select_score_for_roll(score_type_selected, self.current_turn.last_roll)
+        self.current_turn.selected_score_type = score_type_selected
 
         # Now that the current player has selected a score for their turn, update the current turn.
         self._update_current_turn()
