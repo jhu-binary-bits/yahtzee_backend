@@ -10,8 +10,7 @@ class Player:
     def __str__(self):
         return self.name
 
-    def to_json(self):
+    def to_dict(self):
         return {
-            "name": self.name,
-            "websocket": self.websocket
+            "name": self.name
         }

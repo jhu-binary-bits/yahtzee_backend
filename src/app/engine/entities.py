@@ -51,7 +51,7 @@ class Die():
     def _get_random_face_value() -> int:
         return randint(1, 6)
 
-    def to_json(self):
+    def to_dict(self):
         return {
             "die_id": self.die_id,
             "face_value": self.face_value
@@ -65,17 +65,17 @@ class Roll():
     def _get_default_dice() -> List[Die]:
         return [Die(1), Die(2), Die(3), Die(4), Die(5)]
 
-    def roll_selected_dice(self, dice_to_roll: List[int]):
-        return [die.roll() if die.die_id in dice_to_roll else die for die in self.dice]
+    def roll_selected_dice(self, dice_to_roll: List[Die]):
+        return [die.roll() if die in dice_to_roll else die for die in self.dice]
 
     def get_die_by_id(self, id: int):
         for d in self.dice:
-            if(d.die_id == id):
+            if d.die_id == id:
                 return d
         return None
 
-    def to_json(self):
-        return [die.to_json() for die in self.dice]
+    def to_dict(self):
+        return [die.to_dict() for die in self.dice]
 
 class ScoreType(Enum):
     ONES = "ONES"
@@ -136,7 +136,7 @@ class Score(ABC):
         if self._selected_roll is None and roll is not None:
             self._selected_roll = roll
 
-    def to_json(self):
+    def to_dict(self):
         return {
             "score_type": self.score_type().value,
             "points": self.calculate_points()
@@ -343,7 +343,7 @@ class YahtzeeScore(GroupedScore):
 
 @dataclass(init=True)
 class Scorecard():
-    player: str
+    player: Player
     scores: List[Score] = field(default_factory=lambda: Scorecard._get_initial_scorecard())
 
     def get_valid_scores_for_roll(self, roll: Roll) -> List[Score]:
@@ -372,10 +372,10 @@ class Scorecard():
 
         return self.player == other.player
 
-    def to_json(self):
+    def to_dict(self):
         return {
-            "player": self.player,
-            "scores": [score.to_json() for score in self.scores]
+            "player": self.player.name,
+            "scores": [score.to_dict() for score in self.scores]
         }
 
     @staticmethod
@@ -398,10 +398,10 @@ class Scorecard():
 class Turn:
     MAX_ROLL_COUNT = 3
 
+    player: Player
     last_roll: Roll = Roll()
     roll_count: int = 1
     selected_score_type: ScoreType = None
-    player: str = ""
 
     def roll_selected_dice(self, dice_to_roll: List[Die]):
         if self.roll_count == Turn.MAX_ROLL_COUNT:
@@ -413,10 +413,10 @@ class Turn:
     def is_turn_complete(self) -> bool:
         return self.selected_score_type is not None
 
-    def to_json(self):
+    def to_dict(self):
         return {
-            "last_roll": self.last_roll.to_json(),
+            "last_roll": self.last_roll.to_dict(),
             "roll_count": self.roll_count,
             "selected_score_type": self.selected_score_type.value if self.selected_score_type else None,
-            "player": self.player
+            "player": self.player.name
         }

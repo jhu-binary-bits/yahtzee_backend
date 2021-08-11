@@ -3,6 +3,8 @@ import unittest
 from src.app.events.event import Event
 from src.app.state.state_manager import StateManager
 
+from pprint import pformat
+
 
 class TestStateManager(unittest.TestCase):
     def setUp(self):
@@ -21,6 +23,11 @@ class TestStateManager(unittest.TestCase):
 
         current_state = self.state_manager.publish_current_state()
         self.assertIsNotNone(current_state)
+        self.assertIn('"game_started": true', current_state)
+        self.assertIn('"players": ["Player 1"', current_state)
+        self.assertIn('"player": "Player 1", "valid_scores": [{', current_state)
+        self.assertEqual(5, len(self.state_manager.game_engine.current_turn.last_roll.dice))
+
 
 """
 import unittest
