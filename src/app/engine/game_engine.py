@@ -2,9 +2,9 @@ import logging
 from itertools import cycle
 from typing import List
 
-from engine.entities import Scorecard, Turn, ScoreType
+from engine.entities import Scorecard, Turn, ScoreType, Roll
 from state.yahtzee.player import Player
-from engine.entities import Die
+
 
 class GameEngine:
     def __init__(self):
@@ -17,18 +17,15 @@ class GameEngine:
 
     def start_game(self, players: List[Player]):
         self.game_started = True
-        self.scorecards = [Scorecard(player=player.name) for player in players]
+        self.scorecards = [Scorecard(player=player) for player in players]
         self.scorecards_cycle = cycle(self.scorecards)
         self._update_current_turn()
         self.log.info(f"New game started with {len(players)} players.")
         return self
 
     def roll_selected_dice(self, dice_to_roll):
-        newdice = []
-
-        for d in dice_to_roll:
-            newdice.append(int(d[4]))
-        self.current_turn.roll_selected_dice(newdice)
+        dice = [self.current_turn.last_roll.get_die_by_id(int(die_id)) for die_id in dice_to_roll]
+        self.current_turn.roll_selected_dice(dice)
 
     def select_score_for_roll(self, score_type_selected):
         # each score_type_selected from the front should match the name of the score in the enum
@@ -40,10 +37,12 @@ class GameEngine:
         self._update_current_turn()
 
     def _update_current_turn(self):
+        # TODO: Why aren't these logs showing up?
+        self.log.info(f"First turn of game: {self._is_first_turn_of_game()}")
+        self.log.info(f"Turn is complete: {self.current_turn.is_turn_complete()}")
         if self._is_first_turn_of_game() or self.current_turn.is_turn_complete():
             self.current_scorecard = next(self.scorecards_cycle)
-            self.current_turn = Turn()
-            self.current_turn.player = self.current_scorecard.player
+            self.current_turn = Turn(player=self.current_scorecard.player)
 
     def _is_first_turn_of_game(self) -> bool:
         return self.current_turn is None

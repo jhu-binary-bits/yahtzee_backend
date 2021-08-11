@@ -3,10 +3,10 @@ import logging
 from datetime import datetime
 from engine.game_engine import GameEngine
 from events.event import Event
+from pprint import pformat
 from state.transcripts.message import Message
 from state.transcripts.transcript import Transcript
 from state.yahtzee.player import Player
-
 
 
 class StateManager:
@@ -115,10 +115,10 @@ class StateManager:
                 "players": self.get_connected_players(),
                 "chat_transcript": self.chat_transcript.get_transcript(),
                 "game_transcript": self.game_transcript.get_transcript(),
-                "scorecards": [scorecard.to_json() for scorecard in self.game_engine.scorecards],
+                "scorecards": [scorecard.to_dict() for scorecard in self.game_engine.scorecards],
                 "current_turn": {
-                    **self.game_engine.current_turn.to_json(),
-                    "valid_scores": [score.to_json() for score in current_turn_valid_scores]
+                    **self.game_engine.current_turn.to_dict(),
+                    "valid_scores": [score.to_dict() for score in current_turn_valid_scores]
                 }
             }
             game_state_event = {
@@ -128,5 +128,5 @@ class StateManager:
             }
 
         self.log.info("Publishing game state update:")
-        self.log.info(game_state_event)
+        self.log.info(pformat(game_state_event))
         return json.dumps(game_state_event)
