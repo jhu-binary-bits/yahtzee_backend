@@ -115,7 +115,7 @@ class StateManager:
                 "players": self.get_connected_players(),
                 "chat_transcript": self.chat_transcript.get_transcript(),
                 "game_transcript": self.game_transcript.get_transcript(),
-                "scorecards": [scorecard.to_dict() for scorecard in self.game_engine.scorecards],
+                "scorecards": {scorecard.player.name: scorecard.to_dict() for scorecard in self.game_engine.scorecards},
                 "current_turn": {
                     **self.game_engine.current_turn.to_dict(),
                     "valid_scores": [score.to_dict() for score in current_turn_valid_scores]

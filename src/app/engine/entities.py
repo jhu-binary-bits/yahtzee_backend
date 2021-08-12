@@ -374,8 +374,7 @@ class Scorecard():
 
     def to_dict(self):
         return {
-            "player": self.player.name,
-            "scores": [score.to_dict() for score in self.scores]
+            "scores": {score.score_type().value: score.calculate_points() for score in self.scores}
         }
 
     @staticmethod
