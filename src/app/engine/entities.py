@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 from itertools import groupby
@@ -361,7 +362,7 @@ class Scorecard():
     def select_score_for_roll(self, score_type: ScoreType, roll: Roll):
         score_for_roll = [score for score in self.scores if score.score_type() is score_type][0]
 
-        score_for_roll.selected_roll = roll
+        score_for_roll.selected_roll = deepcopy(roll)
 
     def _get_section_total(self, section_type: SectionType):
          return sum(filter(None, [score.calculate_points() for score in self.scores if score.section_type == section_type]))
@@ -399,7 +400,7 @@ class Turn:
 
     player: Player
     last_roll: Roll = Roll()
-    roll_count: int = 1
+    roll_count: int = 0
     selected_score_type: ScoreType = None
 
     def roll_selected_dice(self, dice_to_roll: List[Die]):
