@@ -12,9 +12,9 @@ class Transcript:
 
     def get_transcript(self):
         transcript_str = ""
-        for i, txt in enumerate(self.transcript_list):
+        for i, txt in reversed(list(enumerate(self.transcript_list))):
             if i == 0:
                 transcript_str += txt
             else:
-                transcript_str += f"\n{txt}"
+                transcript_str += f"{txt}\n"
         return transcript_str
