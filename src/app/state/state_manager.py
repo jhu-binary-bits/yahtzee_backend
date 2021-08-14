@@ -44,7 +44,7 @@ class StateManager:
         self.log.info("Adding player to the game")
         new_player = Player(name=event.data["player_name"], websocket=event.websocket, joined_at=event.timestamp)
         self.players.append(new_player)
-        self.transcribe_event(event)
+        self.transcribe_event(event, None)
         self.log.info("current player list: ")
         self.log.info(self.get_connected_players())
 
@@ -54,12 +54,12 @@ class StateManager:
         return self
 
     def remove_connected_player(self, event: Event):
-        self.log.info("Removing player to the game")
+        self.log.info("Removing player from the game")
         for player in self.players:
             if player.websocket == event.websocket:
                 event.data["player_name"] = player.name
                 self.players.remove(player)
-        self.transcribe_event(event)
+        self.transcribe_event(event, None)
         self.log.info("current player list: ")
         self.log.info(self.get_connected_players())
         return self
@@ -68,25 +68,27 @@ class StateManager:
         return [str(player) for player in self.players]
 
     def send_chat_message(self, event: Event):
-        message = Message(event)
+        message = Message(event,None)
         self.chat_transcript.add_message(message)
         return self
 
     def start_game(self, event: Event):
         self.game_engine.start_game(self.players)
-        self.transcribe_event(event)
+        self.transcribe_event(event, len(self.players))
         return self
 
     def roll_selected_dice(self, event: Event):
         self.game_engine.roll_selected_dice(event.get_data()["dice_to_roll"])
-        self.transcribe_event(event)
+        valuelist = [dice.face_value for dice in self.game_engine.current_turn.last_roll.dice]
+        self.log.info(valuelist)
+        self.transcribe_event(event, valuelist)
 
     def score_selected(self, event: Event):
         self.game_engine.select_score_for_roll(event.get_data()["selected_score_type"])
-        self.transcribe_event(event)
+        self.transcribe_event(event, event.get_data()["selected_score_type"].lower().replace("_", " "))
 
-    def transcribe_event(self, event):
-        message = Message(event)
+    def transcribe_event(self, event, info):
+        message = Message(event, info)
         self.game_transcript.add_message(message)
         return self
 

@@ -37,7 +37,6 @@ class GameEngine:
         self._update_current_turn()
 
     def _update_current_turn(self):
-        # TODO: Why aren't these logs showing up?
         self.log.info(f"First turn of game: {self._is_first_turn_of_game()}")
         if self.current_turn:
             self.log.info(f"Turn is complete: {self.current_turn.is_turn_complete()}")
