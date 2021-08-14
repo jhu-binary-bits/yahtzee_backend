@@ -50,7 +50,7 @@ class StateManager:
 
         # Temporary hack to reset game each time a new player joins (makes debugging much easier).
         self.game_engine = GameEngine()
-        
+
         return self
 
     def remove_connected_player(self, event: Event):
@@ -118,7 +118,7 @@ class StateManager:
                 "scorecards": {scorecard.player.name: scorecard.to_dict() for scorecard in self.game_engine.scorecards},
                 "current_turn": {
                     **self.game_engine.current_turn.to_dict(),
-                    "valid_scores": [score.to_dict() for score in current_turn_valid_scores]
+                    "valid_scores": [score.to_dict_valid(self.game_engine.current_turn.last_roll) for score in current_turn_valid_scores]
                 }
             }
             game_state_event = {

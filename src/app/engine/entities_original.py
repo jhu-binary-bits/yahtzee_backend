@@ -119,20 +119,17 @@ class Score(ABC):
     def is_valid_for_roll(self, roll: Roll) -> bool:
         pass
 
-    def calculate_points(self, input_roll) -> int:
-        if self._selected_roll is None and input_roll is None:
+    def calculate_points(self) -> int:
+        if self._selected_roll is None:
             return None
-        elif self._selected_roll is None:
-            if(self.is_valid_for_roll(input_roll)):
-                return self._calculate_points_internal(input_roll)
 
         if self.is_valid_for_roll(self._selected_roll):
-            return self._calculate_points_internal(self._selected_roll)
+            return self._calculate_points_internal()
         else:
             return 0
 
     @abstractmethod
-    def _calculate_points_internal(self, input_roll) -> int:
+    def _calculate_points_internal(self) -> int:
         pass
 
     @selected_roll.setter
@@ -143,12 +140,7 @@ class Score(ABC):
     def to_dict(self):
         return {
             "score_type": self.score_type().value,
-            "points": self.calculate_points(None)
-        }
-    def to_dict_valid(self, input_roll):
-        return {
-            "score_type": self.score_type().value,
-            "points": self.calculate_points(input_roll)
+            "points": self.calculate_points()
         }
 
 @dataclass
@@ -159,8 +151,8 @@ class UpperSectionScore(Score, ABC):
     def is_valid_for_roll(self, roll: Roll) -> bool:
         return True
 
-    def _calculate_points_internal(self, input_roll) -> int:
-        return sum([die.face_value for die in input_roll.dice if die.face_value == self._die_value()])
+    def _calculate_points_internal(self) -> int:
+        return sum([die.face_value for die in self._selected_roll.dice if die.face_value == self._die_value()])
 
     @abstractmethod
     def _die_value(self) -> int:
@@ -239,8 +231,8 @@ class ThreeOfAKindScore(GroupedScore):
 
         return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice >= 3]) == 1
 
-    def _calculate_points_internal(self, input_roll) -> int:
-        return sum([die.face_value for die in input_roll.dice])
+    def _calculate_points_internal(self) -> int:
+        return sum([die.face_value for die in self._selected_roll.dice])
 
 @dataclass
 class FourOfAKindScore(GroupedScore):
@@ -256,8 +248,8 @@ class FourOfAKindScore(GroupedScore):
         # One group of 4 or more dice
         return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice >= 4]) == 1
 
-    def _calculate_points_internal(self, input_roll) -> int:
-        return sum([die.face_value for die in input_roll.dice])
+    def _calculate_points_internal(self) -> int:
+        return sum([die.face_value for die in self._selected_roll.dice])
 
 @dataclass
 class FullHouseScore(GroupedScore):
@@ -274,7 +266,7 @@ class FullHouseScore(GroupedScore):
         return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 3]) == 1 and \
                len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 2]) == 1
 
-    def _calculate_points_internal(self, input_roll) -> int:
+    def _calculate_points_internal(self) -> int:
         return 25
 
 @dataclass
@@ -296,7 +288,7 @@ class SmallStraightScore(Score):
                (small_straight_variation_two_die_face_values <= roll_face_values) or \
                (small_straight_variation_three_die_face_values <= roll_face_values)
 
-    def _calculate_points_internal(self, input_roll) -> int:
+    def _calculate_points_internal(self) -> int:
         return 30
 
 @dataclass
@@ -316,7 +308,7 @@ class LargeStraightScore(Score):
         return (large_straight_variation_one_die_face_values <= roll_face_values) or \
                (large_straight_variation_two_die_face_values <= roll_face_values)
 
-    def _calculate_points_internal(self, input_roll) -> int:
+    def _calculate_points_internal(self) -> int:
         return 40
 
 @dataclass
@@ -330,8 +322,8 @@ class ChanceScore(Score):
     def is_valid_for_roll(self, roll: Roll) -> bool:
         return True
 
-    def _calculate_points_internal(self, input_roll) -> int:
-        return sum([die.face_value for die in input_roll.dice])
+    def _calculate_points_internal(self) -> int:
+        return sum([die.face_value for die in self._selected_roll.dice])
 
 @dataclass
 class YahtzeeScore(GroupedScore):
@@ -347,7 +339,7 @@ class YahtzeeScore(GroupedScore):
         # One group of 5 dice
         return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 5]) == 1
 
-    def _calculate_points_internal(self, input_roll) -> int:
+    def _calculate_points_internal(self) -> int:
         return 50
 
 @dataclass(init=True)
@@ -373,7 +365,7 @@ class Scorecard():
         score_for_roll.selected_roll = deepcopy(roll)
 
     def _get_section_total(self, section_type: SectionType):
-         return sum(filter(None, [score.calculate_points(None) for score in self.scores if score.section_type == section_type]))
+         return sum(filter(None, [score.calculate_points() for score in self.scores if score.section_type == section_type]))
 
     def __eq__(self, other):
         if not isinstance(other, Scorecard):
@@ -383,7 +375,7 @@ class Scorecard():
 
     def to_dict(self):
         return {
-            "scores": {score.score_type().value: score.calculate_points(None) for score in self.scores}
+            "scores": {score.score_type().value: score.calculate_points() for score in self.scores}
         }
 
     @staticmethod
