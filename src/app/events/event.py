@@ -10,7 +10,8 @@ VALID_EVENTS = [  # TODO: could make this an enum
     "player_joined",
     "player_left",
     "rolled_dice",
-    "score_selected"
+    "score_selected",
+    "update_turn"
 ]
 
 

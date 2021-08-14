@@ -37,6 +37,8 @@ class Message:
             message = message[:-2] + "."
         elif self.event_type == "score_selected":
             message += " selected " + self.info + "."
+        elif self.event_type == "update_turn":
+            message = f"{self.timestamp}  " + self.info + "\'s turn began."
         # TODO: Add in other types of game transcript messages
         else:
             self.log.warning("Game event type not recognized, could not produce an entry for the transcript.")

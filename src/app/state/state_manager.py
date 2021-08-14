@@ -86,6 +86,8 @@ class StateManager:
     def score_selected(self, event: Event):
         self.game_engine.select_score_for_roll(event.get_data()["selected_score_type"])
         self.transcribe_event(event, event.get_data()["selected_score_type"].lower().replace("_", " "))
+        event.type = "update_turn"
+        self.transcribe_event(event, self.game_engine.current_turn.player.name)
 
     def transcribe_event(self, event, info):
         message = Message(event, info)
