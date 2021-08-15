@@ -37,7 +37,7 @@ class TestEntities(TestCase):
     def test_ones_score_calculate_points_with_no_roll(self):
         ones_score = OnesScore()
 
-        points = ones_score.calculate_points(None)
+        points = ones_score.calculate_points()
 
         self.assertEqual(points, None)
 
@@ -47,7 +47,7 @@ class TestEntities(TestCase):
         ones_score = OnesScore()
         ones_score.selected_roll = roll
 
-        points = ones_score.calculate_points(None)
+        points = ones_score.calculate_points()
 
         self.assertEqual(points, 1)
 
@@ -57,7 +57,7 @@ class TestEntities(TestCase):
         ones_score = OnesScore()
         ones_score.selected_roll = roll
 
-        points = ones_score.calculate_points(None)
+        points = ones_score.calculate_points()
 
         self.assertEqual(points, 4)
 
@@ -82,7 +82,7 @@ class TestEntities(TestCase):
 
         three_of_kind_score = ThreeOfAKindScore()
         three_of_kind_score.selected_roll = roll
-        points = three_of_kind_score.calculate_points(None)
+        points = three_of_kind_score.calculate_points()
 
         self.assertEqual(points, 23)
 
@@ -91,7 +91,7 @@ class TestEntities(TestCase):
 
         three_of_kind_score = ThreeOfAKindScore()
         three_of_kind_score.selected_roll = roll
-        points = three_of_kind_score.calculate_points(None)
+        points = three_of_kind_score.calculate_points()
 
         self.assertEqual(points, 26)
 

@@ -119,17 +119,21 @@ class Score(ABC):
     def is_valid_for_roll(self, roll: Roll) -> bool:
         pass
 
-    def calculate_points(self, input_roll) -> int:
-        if self._selected_roll is None and input_roll is None:
+    def calculate_points(self) -> int:
+        if self._selected_roll is None:
             return None
-        elif self._selected_roll is None:
-            if(self.is_valid_for_roll(input_roll)):
-                return self._calculate_points_internal(input_roll)
 
         if self.is_valid_for_roll(self._selected_roll):
             return self._calculate_points_internal(self._selected_roll)
         else:
             return 0
+
+    def calculate_potential_points(self, input_roll) -> int:
+        if(self.is_valid_for_roll(input_roll)):
+            return self._calculate_points_internal(input_roll)
+        else:
+            return 0
+
 
     @abstractmethod
     def _calculate_points_internal(self, input_roll) -> int:
@@ -383,7 +387,7 @@ class Scorecard():
 
     def to_dict(self):
         return {
-            "scores": {score.score_type().value: score.calculate_points(None) for score in self.scores}
+            "scores": {score.score_type().value: score.calculate_points() for score in self.scores}
         }
 
     @staticmethod

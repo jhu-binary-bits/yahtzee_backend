@@ -122,7 +122,7 @@ class StateManager:
                 "scorecards": {scorecard.player.name: scorecard.to_dict() for scorecard in self.game_engine.scorecards},
                 "current_turn": {
                     **self.game_engine.current_turn.to_dict(),
-                    "valid_scores": {score.score_type().value: score.calculate_points(self.game_engine.current_turn.last_roll) for score in current_turn_valid_scores}
+                    "valid_scores": {score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in current_turn_valid_scores}
                 }
             }
             game_state_event = {
