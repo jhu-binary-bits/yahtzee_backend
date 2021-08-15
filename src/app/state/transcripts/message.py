@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class Message:
-    def __init__(self, event, info):
+    def __init__(self, event, info=None):
         self.log = logging.getLogger(__name__)
         self.event = event
         self.timestamp = self.format_timestamp()
@@ -34,6 +34,7 @@ class Message:
             message += " rolled "
             for dicevalue in self.info:
                 message += str(dicevalue) + ", "
+            #remove last 2 characters of the message that are ", " and replace them with a period.
             message = message[:-2] + "."
         elif self.event_type == "score_selected":
             message += " selected " + self.info + "."

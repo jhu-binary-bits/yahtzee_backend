@@ -44,7 +44,7 @@ class StateManager:
         self.log.info("Adding player to the game")
         new_player = Player(name=event.data["player_name"], websocket=event.websocket, joined_at=event.timestamp)
         self.players.append(new_player)
-        self.transcribe_event(event, None)
+        self.transcribe_event(event)
         self.log.info("current player list: ")
         self.log.info(self.get_connected_players())
 
@@ -68,7 +68,7 @@ class StateManager:
         return [str(player) for player in self.players]
 
     def send_chat_message(self, event: Event):
-        message = Message(event,None)
+        message = Message(event)
         self.chat_transcript.add_message(message)
         return self
 
@@ -89,7 +89,7 @@ class StateManager:
         event.type = "update_turn"
         self.transcribe_event(event, self.game_engine.current_turn.player.name)
 
-    def transcribe_event(self, event, info):
+    def transcribe_event(self, event, info=None):
         message = Message(event, info)
         self.game_transcript.add_message(message)
         return self
