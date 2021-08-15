@@ -59,7 +59,7 @@ class StateManager:
             if player.websocket == event.websocket:
                 event.data["player_name"] = player.name
                 self.players.remove(player)
-        self.transcribe_event(event, None)
+        self.transcribe_event(event)
         self.log.info("current player list: ")
         self.log.info(self.get_connected_players())
         return self
