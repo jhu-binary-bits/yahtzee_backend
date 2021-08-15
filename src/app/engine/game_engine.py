@@ -5,6 +5,7 @@ from typing import List
 from engine.entities import Scorecard, Turn, ScoreType
 from state.yahtzee.player import Player
 
+COMPLETED_GAME_TURN_COUNT = 13
 
 class GameEngine:
     def __init__(self):
@@ -52,19 +53,12 @@ class GameEngine:
 
     def _is_game_complete(self) -> bool:
         for scorecard in self.scorecards:
-            if scorecard.get_completed_turn_count() < 13:
+            if scorecard.get_completed_turn_count() < COMPLETED_GAME_TURN_COUNT:
                 return False
         return True
 
     def _calculate_winner(self):
-        top_score = 0
-        top_scorecard = None
-        self.log.info("Calculating winner")
-        for scorecard in self.scorecards:
-            # TODO: This won't handle a tie correctly
-            if scorecard.get_grand_total() > top_score:
-                top_score = scorecard.get_grand_total()
-                top_scorecard = scorecard
+        top_scorecard = max(self.scorecards, key=lambda scorecard: scorecard.get_grand_total())
 
         self.game_winner["player_name"] = top_scorecard.player.name
         self.game_winner["grand_total"] = top_scorecard.get_grand_total()
