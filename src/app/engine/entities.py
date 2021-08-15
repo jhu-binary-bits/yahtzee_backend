@@ -8,6 +8,10 @@ from typing import List
 import logging
 from state.yahtzee.player import Player
 
+NO_BONUS_AMOUNT = 0
+MINIMUM_UPPER_SECTION_SCORE_FOR_BONUS = 63
+UPPER_SECTION_BONUS_POINTS = 35
+
 @dataclass(init=False)
 class Die():
     def __init__(self, die_id: int, face_value: int = None):
@@ -347,11 +351,23 @@ class Scorecard():
     player: Player
     scores: List[Score] = field(default_factory=lambda: Scorecard._get_initial_scorecard())
 
+    def get_completed_turn_count(self):
+        return len([score for score in self.scores if score.selected_roll is not None])
+
     def get_valid_scores_for_roll(self, roll: Roll) -> List[Score]:
         return [score for score in self.scores if score.is_valid_for_roll(roll)]
 
-    def get_upper_section_total(self):
+    def get_upper_section_score_sum(self):
         return self._get_section_total(SectionType.UPPER)
+
+    def get_upper_section_bonus(self):
+        return UPPER_SECTION_BONUS_POINTS if self.get_upper_section_score_sum() \
+                                             >= MINIMUM_UPPER_SECTION_SCORE_FOR_BONUS else NO_BONUS_AMOUNT
+
+    def get_upper_section_total(self):
+        return self.get_upper_section_score_sum() + self.get_upper_section_bonus()
+
+    # TODO: Yahtzee bonus logic
 
     def get_lower_section_total(self):
         return self._get_section_total(SectionType.LOWER)
@@ -364,8 +380,15 @@ class Scorecard():
 
         score_for_roll.selected_roll = deepcopy(roll)
 
+    @staticmethod
+    def _is_not_null_score(x):
+        return not(x is None)
+
     def _get_section_total(self, section_type: SectionType):
-         return sum(filter(None, [score.calculate_points() for score in self.scores if score.section_type == section_type]))
+        # TODO: Not sure if we're using @property fields correctly, shouldn't we be able to access score.section_type?
+        section_scores = [score.calculate_points() for score in self.scores if score.section_type() == section_type]
+        non_null_scores = list(filter(self._is_not_null_score, section_scores))
+        return sum(non_null_scores)
 
     def __eq__(self, other):
         if not isinstance(other, Scorecard):
@@ -375,7 +398,11 @@ class Scorecard():
 
     def to_dict(self):
         return {
-            "scores": {score.score_type().value: score.calculate_points() for score in self.scores}
+            "scores": {score.score_type().value: score.calculate_points() for score in self.scores},
+            "UPPER_BONUS": self.get_upper_section_bonus(),
+            "UPPER_TOTAL": self.get_upper_section_total(),
+            "LOWER_TOTAL": self.get_lower_section_total(),
+            "GRAND_TOTAL": self.get_grand_total()
         }
 
     @staticmethod

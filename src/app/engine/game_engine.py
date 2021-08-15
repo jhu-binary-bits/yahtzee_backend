@@ -2,9 +2,10 @@ import logging
 from itertools import cycle
 from typing import List
 
-from engine.entities import Scorecard, Turn, ScoreType, Roll
+from engine.entities import Scorecard, Turn, ScoreType
 from state.yahtzee.player import Player
 
+COMPLETED_GAME_TURN_COUNT = 13
 
 class GameEngine:
     def __init__(self):
@@ -14,12 +15,14 @@ class GameEngine:
         self.scorecards_cycle = None
         self.current_scorecard = None
         self.current_turn = None
+        self.game_winner = None
 
     def start_game(self, players: List[Player]):
         self.game_started = True
         self.scorecards = [Scorecard(player=player) for player in players]
         self.scorecards_cycle = cycle(self.scorecards)
         self._update_current_turn()
+        self.game_winner = {"player_name": None, "grand_total": None}
         self.log.info(f"New game started with {len(players)} players.")
         return self
 
@@ -37,13 +40,25 @@ class GameEngine:
         self._update_current_turn()
 
     def _update_current_turn(self):
-        # TODO: Why aren't these logs showing up?
-        self.log.info(f"First turn of game: {self._is_first_turn_of_game()}")
-        if self.current_turn:
-            self.log.info(f"Turn is complete: {self.current_turn.is_turn_complete()}")
         if self._is_first_turn_of_game() or self.current_turn.is_turn_complete():
-            self.current_scorecard = next(self.scorecards_cycle)
-            self.current_turn = Turn(player=self.current_scorecard.player)
+            if self._is_game_complete():
+                self.log.info("The game is complete")
+                self._calculate_winner()
+            else:
+                self.current_scorecard = next(self.scorecards_cycle)
+                self.current_turn = Turn(player=self.current_scorecard.player)
 
     def _is_first_turn_of_game(self) -> bool:
         return self.current_turn is None
+
+    def _is_game_complete(self) -> bool:
+        for scorecard in self.scorecards:
+            if scorecard.get_completed_turn_count() < COMPLETED_GAME_TURN_COUNT:
+                return False
+        return True
+
+    def _calculate_winner(self):
+        top_scorecard = max(self.scorecards, key=lambda scorecard: scorecard.get_grand_total())
+
+        self.game_winner["player_name"] = top_scorecard.player.name
+        self.game_winner["grand_total"] = top_scorecard.get_grand_total()
