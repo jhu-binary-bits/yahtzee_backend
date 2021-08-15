@@ -123,7 +123,8 @@ class StateManager:
                 "current_turn": {
                     **self.game_engine.current_turn.to_dict(),
                     "valid_scores": {score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in current_turn_valid_scores}
-                }
+                },
+                "game_winner": self.game_engine.game_winner
             }
             game_state_event = {
                 "timestamp": datetime.now().timestamp(),
