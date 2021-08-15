@@ -147,13 +147,9 @@ class Score(ABC):
     def to_dict(self):
         return {
             "score_type": self.score_type().value,
-            "points": self.calculate_points(None)
+            "points": self.calculate_points()
         }
-    def to_dict_valid(self, input_roll):
-        return {
-            "score_type": self.score_type().value,
-            "points": self.calculate_points(input_roll)
-        }
+
 
 @dataclass
 class UpperSectionScore(Score, ABC):
@@ -377,7 +373,7 @@ class Scorecard():
         score_for_roll.selected_roll = deepcopy(roll)
 
     def _get_section_total(self, section_type: SectionType):
-         return sum(filter(None, [score.calculate_points(None) for score in self.scores if score.section_type == section_type]))
+         return sum(filter(None, [score.calculate_points() for score in self.scores if score.section_type == section_type]))
 
     def __eq__(self, other):
         if not isinstance(other, Scorecard):
