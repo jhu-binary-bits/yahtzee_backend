@@ -50,11 +50,11 @@ class StateManager:
 
         # Temporary hack to reset game each time a new player joins (makes debugging much easier).
         self.game_engine = GameEngine()
-        
+
         return self
 
     def remove_connected_player(self, event: Event):
-        self.log.info("Removing player to the game")
+        self.log.info("Removing player from the game")
         for player in self.players:
             if player.websocket == event.websocket:
                 event.data["player_name"] = player.name
@@ -74,19 +74,23 @@ class StateManager:
 
     def start_game(self, event: Event):
         self.game_engine.start_game(self.players)
-        self.transcribe_event(event)
+        self.transcribe_event(event, len(self.players))
         return self
 
     def roll_selected_dice(self, event: Event):
         self.game_engine.roll_selected_dice(event.get_data()["dice_to_roll"])
-        self.transcribe_event(event)
+        valuelist = [dice.face_value for dice in self.game_engine.current_turn.last_roll.dice]
+        self.log.info(valuelist)
+        self.transcribe_event(event, valuelist)
 
     def score_selected(self, event: Event):
         self.game_engine.select_score_for_roll(event.get_data()["selected_score_type"])
-        self.transcribe_event(event)
+        self.transcribe_event(event, event.get_data()["selected_score_type"].lower().replace("_", " "))
+        event.type = "update_turn"
+        self.transcribe_event(event, self.game_engine.current_turn.player.name)
 
-    def transcribe_event(self, event):
-        message = Message(event)
+    def transcribe_event(self, event, info=None):
+        message = Message(event, info)
         self.game_transcript.add_message(message)
         return self
 
@@ -118,7 +122,7 @@ class StateManager:
                 "scorecards": {scorecard.player.name: scorecard.to_dict() for scorecard in self.game_engine.scorecards},
                 "current_turn": {
                     **self.game_engine.current_turn.to_dict(),
-                    "valid_scores": [score.to_dict() for score in current_turn_valid_scores]
+                    "valid_scores": {score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in current_turn_valid_scores}
                 },
                 "game_winner": self.game_engine.game_winner
             }

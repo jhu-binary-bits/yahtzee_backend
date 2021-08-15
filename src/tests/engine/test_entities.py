@@ -40,7 +40,7 @@ class TestEntities(TestCase):
         points = ones_score.calculate_points()
 
         self.assertEqual(points, None)
-    
+
     def test_ones_score_calculate_points_with_roll_with_one_one(self):
         roll = Roll([OneFaceValueDie(1), TwoFaceValueDie(2), TwoFaceValueDie(3), TwoFaceValueDie(4), TwoFaceValueDie(5)])
 
