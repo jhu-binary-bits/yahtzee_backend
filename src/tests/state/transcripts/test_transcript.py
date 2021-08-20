@@ -7,9 +7,9 @@ from src.app.state.transcripts.transcript import Transcript
 
 class TestTranscript(unittest.TestCase):
     def setUp(self):
-        self.chat_message_msg_1 = '{"timestamp":1626828901443,"type":"chat_message","data":{"player_name":"Player 1","content":"Hello world!"}}'
-        self.chat_message_msg_2 = '{"timestamp":1626830788218,"type":"chat_message","data":{"player_name":"Player 2","content":"Hello world again!"}}'
-        self.chat_message_msg_3 = '{"timestamp":1626848134529,"type":"chat_message","data":{"player_name":"Player 3","content":"Hello..."}}'
+        self.chat_message_msg_1 = '{"timestamp":1626828901443,"type":"chat_message","data":{"player_name":"Player 1","content":"Hello world!", "destination":"all"}}'
+        self.chat_message_msg_2 = '{"timestamp":1626830788218,"type":"chat_message","data":{"player_name":"Player 2","content":"Hello world again!","destination":"all"}}'
+        self.chat_message_msg_3 = '{"timestamp":1626848134529,"type":"chat_message","data":{"player_name":"Player 3","content":"Hello...","destination":"all"}}'
         self.chat_event_1 = Event(self.chat_message_msg_1, websocket="foo")
         self.chat_event_2 = Event(self.chat_message_msg_2, websocket="bar")
         self.chat_event_3 = Event(self.chat_message_msg_3, websocket="foobar")
