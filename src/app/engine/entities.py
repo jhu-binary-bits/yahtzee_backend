@@ -54,7 +54,9 @@ class Die():
 
     @staticmethod
     def _get_random_face_value() -> int:
-        return randint(1, 6)
+        #return randint(1, 6)
+        #testing yahtzee Bonus
+        return 5
 
     def to_dict(self):
         return {
@@ -81,6 +83,22 @@ class Roll():
 
     def to_dict(self):
         return [die.to_dict() for die in self.dice]
+
+    def to_full_house(self):
+        self.dice[0].face_value = 1
+        self.dice[1].face_value = 1
+        self.dice[2].face_value = 1
+        self.dice[3].face_value = 2
+        self.dice[4].face_value = 2
+        return None
+
+    def to_straight(self):
+        self.dice[0].face_value = 1
+        self.dice[1].face_value = 2
+        self.dice[2].face_value = 3
+        self.dice[3].face_value = 4
+        self.dice[4].face_value = 5
+        return None
 
 class ScoreType(Enum):
     ONES = "ONES"
@@ -137,6 +155,8 @@ class Score(ABC):
             return self._calculate_points_internal(input_roll)
         else:
             return 0
+    def calculate_yahtzee_bonus_points(self, input_roll) -> int:
+        return self._calculate_points_internal(input_roll)
 
 
     @abstractmethod
@@ -358,6 +378,7 @@ class YahtzeeScore(GroupedScore):
 class Scorecard():
     player: Player
     scores: List[Score] = field(default_factory=lambda: Scorecard._get_initial_scorecard())
+    yahtzeebonus: int = 0
 
     def get_completed_turn_count(self):
         return len([score for score in self.scores if score.selected_roll is not None])
@@ -384,9 +405,24 @@ class Scorecard():
         return self.get_upper_section_total() + self.get_lower_section_total()
 
     def select_score_for_roll(self, score_type: ScoreType, roll: Roll):
+
         score_for_roll = [score for score in self.scores if score.score_type() is score_type][0]
 
-        score_for_roll.selected_roll = deepcopy(roll)
+        #11 is the yahtzee score type
+        if(self.scores[11].is_valid_for_roll(roll) and self.scores[11].selected_roll != None):
+            print(self.scores[11])
+            newroll = Roll()
+            self.yahtzeebonus += 100
+            if(score_type.name == "FULL_HOUSE"):
+                newroll.to_full_house()
+                score_for_roll.selected_roll = deepcopy(newroll)
+            elif(score_type.name == "SMALL_STRAIGHT" or score_type.name == "LARGE_STRAIGHT"):
+                newroll.to_straight()
+                score_for_roll.selected_roll = deepcopy(newroll)
+            else:
+                score_for_roll.selected_roll = deepcopy(roll)
+        else:
+            score_for_roll.selected_roll = deepcopy(roll)
 
     @staticmethod
     def _is_not_null_score(x):
@@ -396,7 +432,10 @@ class Scorecard():
         # TODO: Not sure if we're using @property fields correctly, shouldn't we be able to access score.section_type?
         section_scores = [score.calculate_points() for score in self.scores if score.section_type() == section_type]
         non_null_scores = list(filter(self._is_not_null_score, section_scores))
-        return sum(non_null_scores)
+        ret = sum(non_null_scores)
+        if(section_type.name == "LOWER"):
+            ret += self.yahtzeebonus
+        return ret
 
     def __eq__(self, other):
         if not isinstance(other, Scorecard):
@@ -410,7 +449,8 @@ class Scorecard():
             "UPPER_BONUS": self.get_upper_section_bonus(),
             "UPPER_TOTAL": self.get_upper_section_total(),
             "LOWER_TOTAL": self.get_lower_section_total(),
-            "GRAND_TOTAL": self.get_grand_total()
+            "GRAND_TOTAL": self.get_grand_total(),
+            "yahtzee_bonus": self.yahtzeebonus,
         }
 
     @staticmethod

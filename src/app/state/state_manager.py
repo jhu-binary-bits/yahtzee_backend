@@ -122,9 +122,20 @@ class StateManager:
                 "data": data
             }
         else:
-            current_turn_valid_scores = self.game_engine.current_scorecard.get_valid_scores_for_roll(
-                roll=self.game_engine.current_turn.last_roll
-            )
+            # current_turn_valid_scores = self.game_engine.current_scorecard.get_valid_scores_for_roll(
+            #     roll=self.game_engine.current_turn.last_roll
+            # )
+
+            valid_scores = {}
+            #if the roll is yahtzee and there is already a score selected, deal with yahtzee bonus
+            #index 11 is the yahtzee score
+            if(self.game_engine.current_scorecard.scores[11].is_valid_for_roll(self.game_engine.current_turn.last_roll) and self.game_engine.current_scorecard.scores[11].selected_roll != None):
+                valid_scores = {score.score_type().value: score.calculate_yahtzee_bonus_points(self.game_engine.current_turn.last_roll) for score in self.game_engine.current_scorecard.scores}
+            #otherwise proceed normally
+            else:
+                valid_scores = {score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in self.game_engine.current_scorecard.scores}
+
+            #{score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in self.game_engine.current_scorecard.scores}
 
             data = {
                 "game_started": self.game_engine.game_started,
@@ -135,7 +146,7 @@ class StateManager:
                 "scorecards": {scorecard.player.name: scorecard.to_dict() for scorecard in self.game_engine.scorecards},
                 "current_turn": {
                     **self.game_engine.current_turn.to_dict(),
-                    "valid_scores": {score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in self.game_engine.current_scorecard.scores}
+                    "valid_scores": valid_scores
                 },
                 "game_winner": self.game_engine.game_winner
             }
