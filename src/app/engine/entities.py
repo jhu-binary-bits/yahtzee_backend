@@ -411,7 +411,6 @@ class Scorecard():
 
         YAHTZEE_SCORE_INDEX = 11
         if(self.scores[YAHTZEE_SCORE_INDEX].is_valid_for_roll(roll) and self.scores[YAHTZEE_SCORE_INDEX].selected_roll != None):
-            #newroll = Roll()
             self.yahtzeebonus += 100
             if(score_type.name == "FULL_HOUSE" or score_type.name == "SMALL_STRAIGHT" or score_type.name == "LARGE_STRAIGHT"):
                 score_for_roll.is_yahtzee_bonus = True
