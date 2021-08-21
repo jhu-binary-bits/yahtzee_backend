@@ -54,8 +54,7 @@ class Die():
 
     @staticmethod
     def _get_random_face_value() -> int:
-        #return randint(1, 6)
-        return 5
+        return randint(1, 6)
 
     def to_dict(self):
         return {
