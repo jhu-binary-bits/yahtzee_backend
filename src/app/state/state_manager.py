@@ -7,6 +7,7 @@ from pprint import pformat
 from state.transcripts.message import Message
 from state.transcripts.transcript import Transcript
 from state.yahtzee.player import Player
+import itertools
 
 
 class StateManager:
@@ -19,6 +20,7 @@ class StateManager:
         self.game_engine = GameEngine()
         self.chat_transcript = Transcript()
         self.game_transcript = Transcript()
+        self.private_transcripts = {}
 
     def process_event(self, event):
         """
@@ -69,10 +71,20 @@ class StateManager:
 
     def send_chat_message(self, event: Event):
         message = Message(event)
-        self.chat_transcript.add_message(message)
+        if(event.data['destination'] == "all"):
+            self.chat_transcript.add_message(message)
+        else:
+            key = event.data['player_name'] + "/" + event.data['destination']
+            self.private_transcripts[key].add_message(message)
         return self
 
     def start_game(self, event: Event):
+        for pair in itertools.combinations(self.players, 2):
+            privateTranscript = Transcript()
+            key = pair[0].name + "/" + pair[1].name
+            key2 = pair[1].name + "/" + pair[0].name
+            self.private_transcripts[key] = privateTranscript
+            self.private_transcripts[key2] = privateTranscript
         self.game_engine.start_game(self.players)
         self.transcribe_event(event, len(self.players))
         return self
@@ -110,19 +122,29 @@ class StateManager:
                 "data": data
             }
         else:
-            current_turn_valid_scores = self.game_engine.current_scorecard.get_valid_scores_for_roll(
-                roll=self.game_engine.current_turn.last_roll
-            )
+            YAHTZEE_SCORE_INDEX = 11
+
+            valid_scores = {}
+            #if the roll is yahtzee and there is already a score selected, deal with yahtzee bonus
+
+            if(self.game_engine.current_scorecard.scores[YAHTZEE_SCORE_INDEX].is_valid_for_roll(self.game_engine.current_turn.last_roll) and self.game_engine.current_scorecard.scores[YAHTZEE_SCORE_INDEX].selected_roll != None):
+                valid_scores = {score.score_type().value: score.calculate_yahtzee_bonus_points(self.game_engine.current_turn.last_roll) for score in self.game_engine.current_scorecard.scores}
+            #otherwise proceed normally
+            else:
+                valid_scores = {score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in self.game_engine.current_scorecard.scores}
+
+
 
             data = {
                 "game_started": self.game_engine.game_started,
                 "players": self.get_connected_players(),
                 "chat_transcript": self.chat_transcript.get_transcript(),
                 "game_transcript": self.game_transcript.get_transcript(),
+                "private_transcripts": {key: self.private_transcripts[key].get_transcript() for key in self.private_transcripts},
                 "scorecards": {scorecard.player.name: scorecard.to_dict() for scorecard in self.game_engine.scorecards},
                 "current_turn": {
                     **self.game_engine.current_turn.to_dict(),
-                    "valid_scores": {score.score_type().value: score.calculate_potential_points(self.game_engine.current_turn.last_roll) for score in self.game_engine.current_scorecard.scores}
+                    "valid_scores": valid_scores
                 },
                 "game_winner": self.game_engine.game_winner
             }

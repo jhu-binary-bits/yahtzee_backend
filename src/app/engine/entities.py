@@ -82,6 +82,7 @@ class Roll():
     def to_dict(self):
         return [die.to_dict() for die in self.dice]
 
+
 class ScoreType(Enum):
     ONES = "ONES"
     TWOS = "TWOS"
@@ -137,6 +138,8 @@ class Score(ABC):
             return self._calculate_points_internal(input_roll)
         else:
             return 0
+    def calculate_yahtzee_bonus_points(self, input_roll) -> int:
+        return self._calculate_points_internal(input_roll)
 
 
     @abstractmethod
@@ -232,6 +235,7 @@ class GroupedScore(Score, ABC):
 
 @dataclass
 class ThreeOfAKindScore(GroupedScore):
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -265,6 +269,8 @@ class FourOfAKindScore(GroupedScore):
 
 @dataclass
 class FullHouseScore(GroupedScore):
+    is_yahtzee_bonus: bool = False
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -272,17 +278,22 @@ class FullHouseScore(GroupedScore):
         return ScoreType.FULL_HOUSE
 
     def is_valid_for_roll(self, roll: Roll) -> bool:
-        length_of_groups_of_dice = self._get_length_of_groups_of_dice(roll)
+        if(not self.is_yahtzee_bonus):
+            length_of_groups_of_dice = self._get_length_of_groups_of_dice(roll)
 
-        # Two groups of dice: one with 3 dice and one with 2 dice
-        return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 3]) == 1 and \
-               len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 2]) == 1
+            # Two groups of dice: one with 3 dice and one with 2 dice
+            return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 3]) == 1 and \
+                   len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 2]) == 1
+        else:
+            return True
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 25
 
 @dataclass
 class SmallStraightScore(Score):
+    is_yahtzee_bonus: bool = False
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -290,21 +301,26 @@ class SmallStraightScore(Score):
         return ScoreType.SMALL_STRAIGHT
 
     def is_valid_for_roll(self, roll: Roll) -> bool:
-        small_straight_variation_one_die_face_values = set([1, 2, 3, 4])
-        small_straight_variation_two_die_face_values = set([2, 3, 4, 5])
-        small_straight_variation_three_die_face_values = set([3, 4, 5, 6])
+        if (not self.is_yahtzee_bonus):
+            small_straight_variation_one_die_face_values = set([1, 2, 3, 4])
+            small_straight_variation_two_die_face_values = set([2, 3, 4, 5])
+            small_straight_variation_three_die_face_values = set([3, 4, 5, 6])
 
-        roll_face_values = set([die.face_value for die in roll.dice])
+            roll_face_values = set([die.face_value for die in roll.dice])
 
-        return (small_straight_variation_one_die_face_values <= roll_face_values) or \
-               (small_straight_variation_two_die_face_values <= roll_face_values) or \
-               (small_straight_variation_three_die_face_values <= roll_face_values)
+            return (small_straight_variation_one_die_face_values <= roll_face_values) or \
+                   (small_straight_variation_two_die_face_values <= roll_face_values) or \
+                   (small_straight_variation_three_die_face_values <= roll_face_values)
+        else:
+            return True
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 30
 
 @dataclass
 class LargeStraightScore(Score):
+    is_yahtzee_bonus: bool = False
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -312,13 +328,18 @@ class LargeStraightScore(Score):
         return ScoreType.LARGE_STRAIGHT
 
     def is_valid_for_roll(self, roll: Roll) -> bool:
-        large_straight_variation_one_die_face_values = set([1, 2, 3, 4, 5])
-        large_straight_variation_two_die_face_values = set([2, 3, 4, 5, 6])
+        if (not self.is_yahtzee_bonus):
 
-        roll_face_values = set([die.face_value for die in roll.dice])
+            large_straight_variation_one_die_face_values = set([1, 2, 3, 4, 5])
+            large_straight_variation_two_die_face_values = set([2, 3, 4, 5, 6])
 
-        return (large_straight_variation_one_die_face_values <= roll_face_values) or \
-               (large_straight_variation_two_die_face_values <= roll_face_values)
+            roll_face_values = set([die.face_value for die in roll.dice])
+
+            return (large_straight_variation_one_die_face_values <= roll_face_values) or \
+                   (large_straight_variation_two_die_face_values <= roll_face_values)
+        else:
+
+            return True
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 40
@@ -358,6 +379,7 @@ class YahtzeeScore(GroupedScore):
 class Scorecard():
     player: Player
     scores: List[Score] = field(default_factory=lambda: Scorecard._get_initial_scorecard())
+    yahtzeebonus: int = 0
 
     def get_completed_turn_count(self):
         return len([score for score in self.scores if score.selected_roll is not None])
@@ -384,7 +406,14 @@ class Scorecard():
         return self.get_upper_section_total() + self.get_lower_section_total()
 
     def select_score_for_roll(self, score_type: ScoreType, roll: Roll):
+
         score_for_roll = [score for score in self.scores if score.score_type() is score_type][0]
+
+        YAHTZEE_SCORE_INDEX = 11
+        if(self.scores[YAHTZEE_SCORE_INDEX].is_valid_for_roll(roll) and self.scores[YAHTZEE_SCORE_INDEX].selected_roll != None):
+            self.yahtzeebonus += 100
+            if(score_type.name == "FULL_HOUSE" or score_type.name == "SMALL_STRAIGHT" or score_type.name == "LARGE_STRAIGHT"):
+                score_for_roll.is_yahtzee_bonus = True
 
         score_for_roll.selected_roll = deepcopy(roll)
 
@@ -396,7 +425,10 @@ class Scorecard():
         # TODO: Not sure if we're using @property fields correctly, shouldn't we be able to access score.section_type?
         section_scores = [score.calculate_points() for score in self.scores if score.section_type() == section_type]
         non_null_scores = list(filter(self._is_not_null_score, section_scores))
-        return sum(non_null_scores)
+        ret = sum(non_null_scores)
+        if(section_type.name == "LOWER"):
+            ret += self.yahtzeebonus
+        return ret
 
     def __eq__(self, other):
         if not isinstance(other, Scorecard):
@@ -410,7 +442,8 @@ class Scorecard():
             "UPPER_BONUS": self.get_upper_section_bonus(),
             "UPPER_TOTAL": self.get_upper_section_total(),
             "LOWER_TOTAL": self.get_lower_section_total(),
-            "GRAND_TOTAL": self.get_grand_total()
+            "GRAND_TOTAL": self.get_grand_total(),
+            "yahtzee_bonus": self.yahtzeebonus,
         }
 
     @staticmethod
