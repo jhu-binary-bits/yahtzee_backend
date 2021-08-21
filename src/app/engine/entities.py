@@ -56,7 +56,6 @@ class Die():
     def _get_random_face_value() -> int:
         return randint(1, 6)
 
-
     def to_dict(self):
         return {
             "die_id": self.die_id,
@@ -407,9 +406,9 @@ class Scorecard():
 
         score_for_roll = [score for score in self.scores if score.score_type() is score_type][0]
 
-        #11 is the yahtzee score type
-        if(self.scores[11].is_valid_for_roll(roll) and self.scores[11].selected_roll != None):
-            print(self.scores[11])
+        YAHTZEE_SCORE_INDEX = 11
+        if(self.scores[YAHTZEE_SCORE_INDEX].is_valid_for_roll(roll) and self.scores[YAHTZEE_SCORE_INDEX].selected_roll != None):
+            print(self.scores[YAHTZEE_SCORE_INDEX])
             newroll = Roll()
             self.yahtzeebonus += 100
             if(score_type.name == "FULL_HOUSE"):
