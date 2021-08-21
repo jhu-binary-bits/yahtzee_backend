@@ -54,7 +54,8 @@ class Die():
 
     @staticmethod
     def _get_random_face_value() -> int:
-        return randint(1, 6)
+        #return randint(1, 6)
+        return 5
 
     def to_dict(self):
         return {
@@ -82,21 +83,6 @@ class Roll():
     def to_dict(self):
         return [die.to_dict() for die in self.dice]
 
-    def to_full_house(self):
-        self.dice[0].face_value = 1
-        self.dice[1].face_value = 1
-        self.dice[2].face_value = 1
-        self.dice[3].face_value = 2
-        self.dice[4].face_value = 2
-        return None
-
-    def to_straight(self):
-        self.dice[0].face_value = 1
-        self.dice[1].face_value = 2
-        self.dice[2].face_value = 3
-        self.dice[3].face_value = 4
-        self.dice[4].face_value = 5
-        return None
 
 class ScoreType(Enum):
     ONES = "ONES"
@@ -250,6 +236,7 @@ class GroupedScore(Score, ABC):
 
 @dataclass
 class ThreeOfAKindScore(GroupedScore):
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -283,6 +270,8 @@ class FourOfAKindScore(GroupedScore):
 
 @dataclass
 class FullHouseScore(GroupedScore):
+    is_yahtzee_bonus: bool = False
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -290,17 +279,22 @@ class FullHouseScore(GroupedScore):
         return ScoreType.FULL_HOUSE
 
     def is_valid_for_roll(self, roll: Roll) -> bool:
-        length_of_groups_of_dice = self._get_length_of_groups_of_dice(roll)
+        if(not self.is_yahtzee_bonus):
+            length_of_groups_of_dice = self._get_length_of_groups_of_dice(roll)
 
-        # Two groups of dice: one with 3 dice and one with 2 dice
-        return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 3]) == 1 and \
-               len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 2]) == 1
+            # Two groups of dice: one with 3 dice and one with 2 dice
+            return len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 3]) == 1 and \
+                   len([length_of_group_of_dice for length_of_group_of_dice in length_of_groups_of_dice if length_of_group_of_dice == 2]) == 1
+        else:
+            return True
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 25
 
 @dataclass
 class SmallStraightScore(Score):
+    is_yahtzee_bonus: bool = False
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -308,21 +302,26 @@ class SmallStraightScore(Score):
         return ScoreType.SMALL_STRAIGHT
 
     def is_valid_for_roll(self, roll: Roll) -> bool:
-        small_straight_variation_one_die_face_values = set([1, 2, 3, 4])
-        small_straight_variation_two_die_face_values = set([2, 3, 4, 5])
-        small_straight_variation_three_die_face_values = set([3, 4, 5, 6])
+        if (not self.is_yahtzee_bonus):
+            small_straight_variation_one_die_face_values = set([1, 2, 3, 4])
+            small_straight_variation_two_die_face_values = set([2, 3, 4, 5])
+            small_straight_variation_three_die_face_values = set([3, 4, 5, 6])
 
-        roll_face_values = set([die.face_value for die in roll.dice])
+            roll_face_values = set([die.face_value for die in roll.dice])
 
-        return (small_straight_variation_one_die_face_values <= roll_face_values) or \
-               (small_straight_variation_two_die_face_values <= roll_face_values) or \
-               (small_straight_variation_three_die_face_values <= roll_face_values)
+            return (small_straight_variation_one_die_face_values <= roll_face_values) or \
+                   (small_straight_variation_two_die_face_values <= roll_face_values) or \
+                   (small_straight_variation_three_die_face_values <= roll_face_values)
+        else:
+            return True
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 30
 
 @dataclass
 class LargeStraightScore(Score):
+    is_yahtzee_bonus: bool = False
+
     def section_type(self) -> SectionType:
         return SectionType.LOWER
 
@@ -330,13 +329,18 @@ class LargeStraightScore(Score):
         return ScoreType.LARGE_STRAIGHT
 
     def is_valid_for_roll(self, roll: Roll) -> bool:
-        large_straight_variation_one_die_face_values = set([1, 2, 3, 4, 5])
-        large_straight_variation_two_die_face_values = set([2, 3, 4, 5, 6])
+        if (not self.is_yahtzee_bonus):
 
-        roll_face_values = set([die.face_value for die in roll.dice])
+            large_straight_variation_one_die_face_values = set([1, 2, 3, 4, 5])
+            large_straight_variation_two_die_face_values = set([2, 3, 4, 5, 6])
 
-        return (large_straight_variation_one_die_face_values <= roll_face_values) or \
-               (large_straight_variation_two_die_face_values <= roll_face_values)
+            roll_face_values = set([die.face_value for die in roll.dice])
+
+            return (large_straight_variation_one_die_face_values <= roll_face_values) or \
+                   (large_straight_variation_two_die_face_values <= roll_face_values)
+        else:
+
+            return True
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 40
@@ -408,19 +412,12 @@ class Scorecard():
 
         YAHTZEE_SCORE_INDEX = 11
         if(self.scores[YAHTZEE_SCORE_INDEX].is_valid_for_roll(roll) and self.scores[YAHTZEE_SCORE_INDEX].selected_roll != None):
-            print(self.scores[YAHTZEE_SCORE_INDEX])
-            newroll = Roll()
+            #newroll = Roll()
             self.yahtzeebonus += 100
-            if(score_type.name == "FULL_HOUSE"):
-                newroll.to_full_house()
-                score_for_roll.selected_roll = deepcopy(newroll)
-            elif(score_type.name == "SMALL_STRAIGHT" or score_type.name == "LARGE_STRAIGHT"):
-                newroll.to_straight()
-                score_for_roll.selected_roll = deepcopy(newroll)
-            else:
-                score_for_roll.selected_roll = deepcopy(roll)
-        else:
-            score_for_roll.selected_roll = deepcopy(roll)
+            if(score_type.name == "FULL_HOUSE" or score_type.name == "SMALL_STRAIGHT" or score_type.name == "LARGE_STRAIGHT"):
+                score_for_roll.is_yahtzee_bonus = True
+
+        score_for_roll.selected_roll = deepcopy(roll)
 
     @staticmethod
     def _is_not_null_score(x):
