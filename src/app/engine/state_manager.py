@@ -1,13 +1,14 @@
+import itertools
 import json
 import logging
 from datetime import datetime
-from engine.game_engine import GameEngine
-from events.event import Event
 from pprint import pformat
-from state.transcripts.message import Message
-from state.transcripts.transcript import Transcript
-from state.yahtzee.player import Player
-import itertools
+
+from engine.game_engine import GameEngine
+from entities.events import Event, EventType
+from entities.transcripts import Message
+from entities.transcripts import Transcript
+from entities.gameplay import Player
 
 
 class StateManager:
@@ -27,17 +28,17 @@ class StateManager:
         The central method of this class which processes all valid events received by the EventBroker.
         Forwards events to the correct method for processing
         """
-        if event.type == "player_joined":
+        if event.type == EventType.PLAYER_JOINED:
             self.add_connected_player(event)
-        elif event.type == "player_left":
+        elif event.type == EventType.PLAYER_LEFT:
             self.remove_connected_player(event)
-        elif event.type == "chat_message":
+        elif event.type == EventType.CHAT_MESSAGE:
             self.send_chat_message(event)
-        elif event.type == "game_started":
+        elif event.type == EventType.GAME_STARTED:
             self.start_game(event)
-        elif event.type == "rolled_dice":
+        elif event.type == EventType.ROLLED_DICE:
             self.roll_selected_dice(event)
-        elif event.type == "score_selected":
+        elif event.type == EventType.SCORE_SELECTED:
             self.score_selected(event)
         else:
             self.log.warning(f"Event type: {event.type} not recognized.")
@@ -98,7 +99,7 @@ class StateManager:
     def score_selected(self, event: Event):
         self.game_engine.select_score_for_roll(event.get_data()["selected_score_type"])
         self.transcribe_event(event, event.get_data()["selected_score_type"].lower().replace("_", " "))
-        event.type = "update_turn"
+        event.type = EventType.UPDATE_TURN
         self.transcribe_event(event, self.game_engine.current_turn.player.name)
 
     def transcribe_event(self, event, info=None):

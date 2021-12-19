@@ -2,10 +2,10 @@ import logging
 from itertools import cycle
 from typing import List
 
-from engine.entities import Scorecard, Turn, ScoreType
-from state.yahtzee.player import Player
+from entities.gameplay import Player, Scorecard, ScoreType, Turn
 
 COMPLETED_GAME_TURN_COUNT = 13
+
 
 class GameEngine:
     def __init__(self):

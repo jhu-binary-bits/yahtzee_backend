@@ -3,8 +3,9 @@ import json
 import logging
 import websockets
 from datetime import datetime
-from events.event import Event
-from state.state_manager import StateManager
+
+from entities.events import Event
+from engine.state_manager import StateManager
 from util.config import Config
 
 

@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -5,15 +6,51 @@ from enum import Enum
 from itertools import groupby
 from random import randint
 from typing import List
-import logging
-from state.yahtzee.player import Player
+
 
 NO_BONUS_AMOUNT = 0
 MINIMUM_UPPER_SECTION_SCORE_FOR_BONUS = 63
 UPPER_SECTION_BONUS_POINTS = 35
 
+
+class ScoreType(Enum):
+    ONES = "ONES"
+    TWOS = "TWOS"
+    THREES = "THREES"
+    FOURS = "FOURS"
+    FIVES = "FIVES"
+    SIXES = "SIXES"
+    THREE_OF_A_KIND = "THREE_OF_A_KIND"
+    FOUR_OF_A_KIND = "FOUR_OF_A_KIND"
+    FULL_HOUSE = "FULL_HOUSE"
+    SMALL_STRAIGHT = "SMALL_STRAIGHT"
+    LARGE_STRAIGHT = "LARGE_STRAIGHT"
+    YAHTZEE = "YAHTZEE"
+    CHANCE = "CHANCE"
+
+
+class SectionType(Enum):
+    UPPER = "UPPER"
+    LOWER = "LOWER"
+
+
+@dataclass(init=True)
+class Player:
+    name: str
+    websocket: object
+    joined_at: object
+
+    def __str__(self):
+        return self.name
+
+    def to_dict(self):
+        return {
+            "name": self.name
+        }
+
+
 @dataclass(init=False)
-class Die():
+class Die:
     def __init__(self, die_id: int, face_value: int = None):
         self.die_id = die_id
         self.log = logging.getLogger(__name__)
@@ -62,8 +99,9 @@ class Die():
             "face_value": self.face_value
         }
 
+
 @dataclass(frozen=True, init=True)
-class Roll():
+class Roll:
     dice: List[Die] = field(default_factory=lambda: Roll._get_default_dice())
 
     @staticmethod
@@ -83,24 +121,33 @@ class Roll():
         return [die.to_dict() for die in self.dice]
 
 
-class ScoreType(Enum):
-    ONES = "ONES"
-    TWOS = "TWOS"
-    THREES = "THREES"
-    FOURS = "FOURS"
-    FIVES = "FIVES"
-    SIXES = "SIXES"
-    THREE_OF_A_KIND = "THREE_OF_A_KIND"
-    FOUR_OF_A_KIND = "FOUR_OF_A_KIND"
-    FULL_HOUSE = "FULL_HOUSE"
-    SMALL_STRAIGHT = "SMALL_STRAIGHT"
-    LARGE_STRAIGHT = "LARGE_STRAIGHT"
-    YAHTZEE = "YAHTZEE"
-    CHANCE = "CHANCE"
+@dataclass(init=True)
+class Turn:
+    MAX_ROLL_COUNT = 3
 
-class SectionType(Enum):
-    UPPER = "UPPER"
-    LOWER = "LOWER"
+    player: Player
+    last_roll: Roll = Roll()
+    roll_count: int = 0
+    selected_score_type: ScoreType = None
+
+    def roll_selected_dice(self, dice_to_roll: List[Die]):
+        if self.roll_count == Turn.MAX_ROLL_COUNT:
+            raise Exception(f"Dice have already been rolled {Turn.MAX_ROLL_COUNT} times this turn.")
+
+        self.last_roll.roll_selected_dice(dice_to_roll)
+        self.roll_count += 1
+
+    def is_turn_complete(self) -> bool:
+        return self.selected_score_type is not None
+
+    def to_dict(self):
+        return {
+            "last_roll": self.last_roll.to_dict(),
+            "roll_count": self.roll_count,
+            "selected_score_type": self.selected_score_type.value if self.selected_score_type else None,
+            "player": self.player.name
+        }
+
 
 @dataclass
 class Score(ABC):
@@ -138,9 +185,9 @@ class Score(ABC):
             return self._calculate_points_internal(input_roll)
         else:
             return 0
+
     def calculate_yahtzee_bonus_points(self, input_roll) -> int:
         return self._calculate_points_internal(input_roll)
-
 
     @abstractmethod
     def _calculate_points_internal(self, input_roll) -> int:
@@ -173,6 +220,7 @@ class UpperSectionScore(Score, ABC):
     def _die_value(self) -> int:
         pass
 
+
 @dataclass
 class OnesScore(UpperSectionScore):
     def score_type(self) -> ScoreType:
@@ -180,6 +228,7 @@ class OnesScore(UpperSectionScore):
 
     def _die_value(self) -> int:
         return 1
+
 
 @dataclass
 class TwosScore(UpperSectionScore):
@@ -189,6 +238,7 @@ class TwosScore(UpperSectionScore):
     def _die_value(self) -> int:
         return 2
 
+
 @dataclass
 class ThreesScore(UpperSectionScore):
     def score_type(self) -> ScoreType:
@@ -196,6 +246,7 @@ class ThreesScore(UpperSectionScore):
 
     def _die_value(self) -> int:
         return 3
+
 
 @dataclass
 class FoursScore(UpperSectionScore):
@@ -205,6 +256,7 @@ class FoursScore(UpperSectionScore):
     def _die_value(self) -> int:
         return 4
 
+
 @dataclass
 class FivesScore(UpperSectionScore):
     def score_type(self) -> ScoreType:
@@ -213,6 +265,7 @@ class FivesScore(UpperSectionScore):
     def _die_value(self) -> int:
         return 5
 
+
 @dataclass
 class SixesScore(UpperSectionScore):
     def score_type(self) -> ScoreType:
@@ -220,6 +273,7 @@ class SixesScore(UpperSectionScore):
 
     def _die_value(self) -> int:
         return 6
+
 
 @dataclass
 class GroupedScore(Score, ABC):
@@ -232,6 +286,7 @@ class GroupedScore(Score, ABC):
 
         # Get the length of each group of dice
         return [len(group_of_dice) for group_of_dice in grouped_dice]
+
 
 @dataclass
 class ThreeOfAKindScore(GroupedScore):
@@ -250,6 +305,7 @@ class ThreeOfAKindScore(GroupedScore):
     def _calculate_points_internal(self, input_roll) -> int:
         return sum([die.face_value for die in input_roll.dice])
 
+
 @dataclass
 class FourOfAKindScore(GroupedScore):
     def section_type(self) -> SectionType:
@@ -266,6 +322,7 @@ class FourOfAKindScore(GroupedScore):
 
     def _calculate_points_internal(self, input_roll) -> int:
         return sum([die.face_value for die in input_roll.dice])
+
 
 @dataclass
 class FullHouseScore(GroupedScore):
@@ -289,6 +346,7 @@ class FullHouseScore(GroupedScore):
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 25
+
 
 @dataclass
 class SmallStraightScore(Score):
@@ -317,6 +375,7 @@ class SmallStraightScore(Score):
     def _calculate_points_internal(self, input_roll) -> int:
         return 30
 
+
 @dataclass
 class LargeStraightScore(Score):
     is_yahtzee_bonus: bool = False
@@ -344,6 +403,7 @@ class LargeStraightScore(Score):
     def _calculate_points_internal(self, input_roll) -> int:
         return 40
 
+
 @dataclass
 class ChanceScore(Score):
     def section_type(self) -> SectionType:
@@ -357,6 +417,7 @@ class ChanceScore(Score):
 
     def _calculate_points_internal(self, input_roll) -> int:
         return sum([die.face_value for die in input_roll.dice])
+
 
 @dataclass
 class YahtzeeScore(GroupedScore):
@@ -374,6 +435,7 @@ class YahtzeeScore(GroupedScore):
 
     def _calculate_points_internal(self, input_roll) -> int:
         return 50
+
 
 @dataclass(init=True)
 class Scorecard():
@@ -461,30 +523,3 @@ class Scorecard():
                 LargeStraightScore(),
                 YahtzeeScore(),
                 ChanceScore()]
-
-@dataclass(init=True)
-class Turn:
-    MAX_ROLL_COUNT = 3
-
-    player: Player
-    last_roll: Roll = Roll()
-    roll_count: int = 0
-    selected_score_type: ScoreType = None
-
-    def roll_selected_dice(self, dice_to_roll: List[Die]):
-        if self.roll_count == Turn.MAX_ROLL_COUNT:
-            raise Exception(f"Dice have already been rolled {Turn.MAX_ROLL_COUNT} times this turn.")
-
-        self.last_roll.roll_selected_dice(dice_to_roll)
-        self.roll_count += 1
-
-    def is_turn_complete(self) -> bool:
-        return self.selected_score_type is not None
-
-    def to_dict(self):
-        return {
-            "last_roll": self.last_roll.to_dict(),
-            "roll_count": self.roll_count,
-            "selected_score_type": self.selected_score_type.value if self.selected_score_type else None,
-            "player": self.player.name
-        }
